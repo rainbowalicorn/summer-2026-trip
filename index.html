@@ -231,6 +231,7 @@ const TRIP_END   = new Date('2026-07-12');
 const DAYS = [
   {
     date:'2026-06-14', day:1, label:'Departure Day',
+    shaka:{name:'Yosemite National Park Tour', url:'https://www.shakaguide.com/tours/california/yosemite-national-park-tour', optional:'Optional — only if routing via Tioga Pass (CA-120)'},
     from:'Fairfax, CA', to:'June Lake, CA',
     miles:'280', time:'5 hrs', nights:3,
     camp:{name:'Oh Ridge Campground',loc:'June Lake, CA',site:'156 (Gull Loop)',checkin:'2:00 PM',checkout:'12:00 PM',conf:'0809530963-1',type:'NPS/State'},
@@ -365,6 +366,7 @@ const DAYS = [
   },
   {
     date:'2026-06-23', day:10, label:'Cheney → Big Arm MT',
+    shakac:{name:'Glacier: North Fork', url:'https://www.shakaguide.com/tours/pacific-northwest/glacier-north-fork-tour', optional:'Optional detour — ~15 mi off US-2 near Columbia Falls'},
     quirky:[{name:'Garden of 1,000 Buddhas — Jocko Valley, MT',note:'Rows of white Buddha statues in a Montana field, founded by a Tibetan Buddhist master. Completely unexpected and weirdly beautiful. On US-93 near Ronan, ~30 min south of Kalispell. Free. Talia will have questions.'}],
     from:'Cheney, WA', to:'Big Arm, Flathead Lake MT',
     miles:'225', time:'~4 hrs', nights:1,
@@ -427,7 +429,7 @@ const DAYS = [
   },
   {
     date:'2026-06-27', day:14,
-    shakab:{name:'Glacier: Two Medicine', url:'https://www.shakaguide.com/tours/pacific-northwest/glacier-two-medicine-tour'}, label:'Many Glacier — East Side',
+    shakab:{name:'Glacier: Two Medicine', url:'https://www.shakaguide.com/tours/pacific-northwest/glacier-two-medicine-tour', optional:'~20 mi from St. Mary via East Glacier'}, label:'Many Glacier — East Side',
     shaka:{name:'Glacier: Many Glacier', url:'https://www.shakaguide.com/tours/pacific-northwest/glacier-many-glacier-tour'},
     from:'Leaning Tree Camp, Babb', to:'St. Mary Campground',
     miles:'9', time:'15 min', nights:2,
@@ -442,7 +444,7 @@ const DAYS = [
   },
   {
     date:'2026-06-28', day:15,
-    shakab:{name:'Glacier: Two Medicine', url:'https://www.shakaguide.com/tours/pacific-northwest/glacier-two-medicine-tour'}, label:'Glacier East Side — Day 2',
+    shakab:{name:'Glacier: Two Medicine', url:'https://www.shakaguide.com/tours/pacific-northwest/glacier-two-medicine-tour', optional:'~20 mi from St. Mary via East Glacier'}, label:'Glacier East Side — Day 2',
     shaka:{name:'Glacier: Many Glacier', url:'https://www.shakaguide.com/tours/pacific-northwest/glacier-many-glacier-tour'},
     from:'St. Mary Camp', to:'St. Mary Camp',
     miles:'0', time:'Stay', nights:0,
@@ -886,15 +888,21 @@ function renderToday() {
   </div>`;
 
   // Shaka Guide button(s)
-  const shakas = [d.shaka, d.shakab].filter(Boolean);
+  const shakas = [d.shaka, d.shakab, d.shakac].filter(Boolean);
   shakas.forEach(sg => {
-    html += `<a href="${sg.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1a0d3d,#0d1e3d);border:1px solid #3b1f8a;border-radius:12px;padding:12px 14px;margin-bottom:6px;text-decoration:none;color:var(--text);">
+    const isOptional = !!sg.optional;
+    const borderColor = isOptional ? '#5a3f1a' : '#3b1f8a';
+    const bgGrad = isOptional ? 'linear-gradient(135deg,#2d1a0a,#1a1008)' : 'linear-gradient(135deg,#1a0d3d,#0d1e3d)';
+    const nameColor = isOptional ? '#fbbf24' : '#c4b5fd';
+    const prefix = isOptional ? '🗺️ Optional Detour · ' : '';
+    const suffix = sg.optional ? ` <span style="color:#f59e0b;font-size:0.68rem;font-weight:700;">${sg.optional}</span>` : '';
+    html += `<a href="${sg.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;background:${bgGrad};border:1px solid ${borderColor};border-radius:12px;padding:12px 14px;margin-bottom:6px;text-decoration:none;color:var(--text);">
       <span style="font-size:1.5rem">🎧</span>
       <div style="flex:1">
-        <div style="font-size:0.8rem;font-weight:800;color:#c4b5fd;">Shaka Guide Audio Tour</div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">${sg.name} · Tap to open</div>
+        <div style="font-size:0.78rem;font-weight:800;color:${nameColor};">${prefix}${sg.name}</div>
+        <div style="font-size:0.7rem;color:var(--muted);margin-top:2px;">Shaka Guide Audio Tour · Tap to open${suffix}</div>
       </div>
-      <span style="font-size:0.8rem;color:#c4b5fd;">→</span>
+      <span style="font-size:0.8rem;color:${nameColor};">→</span>
     </a>`;
   });
   if (shakas.length) html += '<div style="margin-bottom:4px"></div>';
