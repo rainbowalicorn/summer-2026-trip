@@ -32,28 +32,21 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html {
   height: 100%;
-  height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
-  touch-action: manipulation;
 }
 body {
   height: 100%;
-  height: 100dvh;
   background: var(--bg);
   color: var(--text);
   font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow: hidden;
   overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-  position: fixed;
-  width: 100%;
-  max-width: 100%;
 }
 
 /* ── LAYOUT ── */
-#app { display: flex; flex-direction: column; height: 100dvh; width: 100%; position: fixed; inset: 0; overscroll-behavior: none; }
+#app { display: flex; flex-direction: column; height: 100dvh; width: 100%; overflow: hidden; }
 #header { background: linear-gradient(180deg, #0e1628 0%, #131c2e 100%); border-bottom: 1px solid var(--border); padding: max(14px, env(safe-area-inset-top)) 16px 12px; padding-top: calc(max(14px, env(safe-area-inset-top)) + 0px); flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; }
 #header-left h1 { font-size: 1rem; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
 #header-left .sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
@@ -1291,9 +1284,15 @@ function initMap() {
     L.polyline(routeCoords, {color:'#f59e0b',weight:2,opacity:0.7,dashArray:'6,4'}).addTo(map);
   }
 
-  // Camp pins
+  // Camp pins — one pin per camp, numbered sequentially (not by day number)
+  let campNum = 0;
+  const seenCamps = new Set();
   DAYS.forEach((d, i) => {
-    if (!d.camp || d.miles === '0') return;
+    if (!d.camp || d.miles === '0') return; // only arrival days
+    const campKey = d.camp.name + d.camp.loc;
+    if (seenCamps.has(campKey)) return; // skip if already pinned
+    seenCamps.add(campKey);
+    campNum++;
     let lat, lng;
     const locMap = {
       'June Lake, CA':[37.778,-119.059],
@@ -1326,8 +1325,8 @@ function initMap() {
 
     const icon = L.divIcon({
       className:'',
-      html:`<div style="background:#f59e0b;color:#0f172a;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5)">${d.day}</div>`,
-      iconSize:[22,22], iconAnchor:[11,11]
+      html:`<div style="background:#e8782a;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;border:2px solid rgba(255,255,255,0.8);box-shadow:0 0 8px rgba(232,120,42,0.5)">${campNum}</div>`,
+      iconSize:[24,24], iconAnchor:[12,12]
     });
     L.marker([lat,lng],{icon}).addTo(map).bindPopup(`<strong>${d.camp.name}</strong><br>${formatDate(d.date)}<br>${d.miles!=='0'?d.miles+' mi · '+d.time:'Stay day'}`);
   });
