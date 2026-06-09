@@ -354,12 +354,14 @@ const DAYS = [
     stops:[{name:'Rowena Crest viewpoint',note:'⭐ One of the best Columbia Gorge panoramas. Exit US-30 east of Hood River.',priority:'top'},
            {name:'Maryhill Stonehenge',note:'⭐ Full-scale replica on WA-14 bluff above the Columbia. Free. "Is that STONEHENGE?!"',priority:'top'},
            {name:'Peter Skene Ogden viewpoint',note:'Crooked River gorge bridge at departure from Terrebonne. Quick and dramatic.',priority:'alt'}],
+    swim:[{name:'Punchbowl Falls — Eagle Creek',note:'Near Cascade Locks / Hood River. 2.2 mi hike to a 36-ft waterfall plunging into a deep blue bowl. One of the most iconic swimming holes in the Pacific Northwest. ⭐ Worth it.'}],
     hotspring:null,
     grocery:{name:'Spokane — Costco + TJ\'s',note:'Costco: 5601 E Sprague Ave. TJ\'s: 2975 E 29th Ave. Last TJ\'s before Montana.'},
     hikes:[], reminders:[],
   },
   {
     date:'2026-06-23', day:10, label:'Cheney → Big Arm MT',
+    quirky:[{name:'Garden of 1,000 Buddhas — Jocko Valley, MT',note:'Rows of white Buddha statues in a Montana field, founded by a Tibetan Buddhist master. Completely unexpected and weirdly beautiful. On US-93 near Ronan, ~30 min south of Kalispell. Free. Talia will have questions.'}],
     from:'Cheney, WA', to:'Big Arm, Flathead Lake MT',
     miles:'225', time:'~4 hrs', nights:1,
     camp:{name:'Big Arm Campground',loc:'Big Arm, Flathead Lake, MT',site:'—',checkin:'—',checkout:'—',conf:'—',type:'State Park'},
@@ -449,6 +451,8 @@ const DAYS = [
   {
     date:'2026-06-29', day:16, label:'Glacier → Yellowstone (LONG DAY)',
     shaka:{name:'Yellowstone National Park', url:'https://www.shakaguide.com/tours/yellowstone-teton/yellowstone-national-park-tour'},
+    quirky:[{name:'Carousel for Missoula — Caras Park',note:'⭐ Hand-carved wooden carousel RIGHT at your Missoula lunch stop (Caras Park on the river). Each horse is unique, hand-painted. $2/ride. Open daily. Talia will absolutely want to ride it. Perfect 10-minute detour.'},
+            {name:'Smokejumper Visitor Center — Missoula',note:'Free museum where they train wildfire parachute firefighters. Actual gear, parachutes, jump stories. Genuinely fascinating for adults and kids. Right in Missoula near the Caras Park lunch area.'}],
     from:'St. Mary, MT', to:'Canyon Campground, Yellowstone',
     miles:'415', time:'7.5–8.5 hrs — START EARLY', nights:1,
     camp:{name:'Canyon Campground',loc:'Yellowstone NP, WY',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
@@ -466,6 +470,7 @@ const DAYS = [
   {
     date:'2026-06-30', day:17, label:'Yellowstone Canyon Day',
     shaka:{name:'Yellowstone National Park', url:'https://www.shakaguide.com/tours/yellowstone-teton/yellowstone-national-park-tour'},
+    swim:[{name:'Firehole Canyon Swimming Area',note:'⭐ 2 miles south of Madison Junction on Firehole Canyon Drive. The ONLY official swim spot in Yellowstone (Boiling River is closed). Geothermal water warms the river to a perfect temperature. Official NPS designated area. Check nps.gov/yell for current conditions — opens mid-summer when snowpack clears. If open on Jul 1, do not skip this.'}],
     from:'Canyon Camp', to:'Madison Camp',
     miles:'30', time:'45 min', nights:1,
     camp:{name:'Madison Campground',loc:'Yellowstone NP, WY',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
@@ -556,6 +561,7 @@ const DAYS = [
   },
   {
     date:'2026-07-06', day:23, label:'Gros Ventre → Jerome, ID',
+    quirky:[{name:'Idaho Potato Museum — Blackfoot, ID',note:'Near Idaho Falls on I-15. The potato capital of the world has a whole museum dedicated to potatoes. Giant Idaho potato display, free potato chips on exit. Talia. Just... Talia.'}],
     from:'Gros Ventre Camp, Jackson', to:'Mendoza Ranchette, Jerome ID',
     miles:'257', time:'4.5–5 hrs', nights:1,
     camp:{name:'Mendoza Ranchette',loc:'Jerome, ID',site:'—',checkin:'—',checkout:'—',conf:'—',type:'HipCamp'},
@@ -590,6 +596,7 @@ const DAYS = [
   },
   {
     date:'2026-07-08', day:25, label:'Mitchell → Yachats, Oregon Coast',
+    swim:[{name:'Blue Pool (Tamolitch Falls) — McKenzie River',note:'⭐ On the McKenzie River route (Hwy 126), ~4 mi RT hike from the trailhead near Sahalie Falls. A collapsed lava tube creates an electric blue pool at the base of a "dry" waterfall — the river disappears underground and re-emerges here. The color is otherworldly. Cold but stunning. One of the most spectacular swimming holes in Oregon.'}],
     from:'Painted Hills, Mitchell OR', to:'Tillicum Beach Park, Yachats OR',
     miles:'264', time:'4.5–5.5 hrs', nights:1,
     camp:{name:'Tillicum Beach Campground',loc:'Yachats, OR',site:'—',checkin:'—',checkout:'—',conf:'—',type:'State Park'},
@@ -634,6 +641,7 @@ const DAYS = [
   },
   {
     date:'2026-07-11', day:28, label:'Corvallis → Dunsmuir CA',
+    quirky:[{name:'Oregon Vortex / House of Mystery — Gold Hill, OR',note:'~12 miles off I-5 near Medford (between Ashland and Grants Pass). A "gravity defying" zone where brooms stand on their own, balls roll uphill, and people appear to change height. Open since 1930. Guided tours. Mixed reviews but Talia will absolutely love the weirdness. oregonvortex.com'}],
     from:'Corvallis, OR', to:'Jubilee Railroad Wilderness Lodge, Dunsmuir CA',
     miles:'306', time:'5.5–6 hrs', nights:1,
     camp:{name:'Jubilee Railroad Wilderness Lodge',loc:'Dunsmuir, CA',site:'—',checkin:'—',checkout:'—',conf:'—',type:'Private Lodge'},
@@ -963,6 +971,38 @@ function renderToday() {
           <div class="tl-note">${d.hotspring.loc} — ${d.hotspring.note}</div>
         </div>
       </div>`;
+    }
+
+    // Quirky stops
+    if (d.quirky) {
+      d.quirky.forEach(q => {
+        html += `<div class="timeline-item">
+          <div class="timeline-left">
+            <div class="timeline-dot" style="background:#3b1f5e">🎪</div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-right" style="background:#1a0d3d;border-color:#3b1f6e">
+            <div class="tl-name" style="color:#c4b5fd">${q.name}</div>
+            <div class="tl-note">${q.note}</div>
+          </div>
+        </div>`;
+      });
+    }
+
+    // Swim holes
+    if (d.swim) {
+      d.swim.forEach(s => {
+        html += `<div class="timeline-item">
+          <div class="timeline-left">
+            <div class="timeline-dot" style="background:#0c2e3e">🏊</div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-right" style="background:#0a1e2e;border-color:#1a4a6e">
+            <div class="tl-name" style="color:#7dd3fc">${s.name}</div>
+            <div class="tl-note">${s.note}</div>
+          </div>
+        </div>`;
+      });
     }
 
     html += `</div>`; // close timeline
