@@ -1070,7 +1070,7 @@ function renderToday() {
   // Camp card
   if (d.camp.name !== 'Home') {
     // Check if tomorrow is a new camp (last night here)
-    const nextDay = DAYS[dispIdx + 1];
+    const nextDay = DAYS[currentDayIdx + 1];
     const isLastNight = nextDay && nextDay.camp && nextDay.camp.name !== d.camp.name && d.camp.checkout && d.camp.checkout !== '—';
     const campIcon = d.camp.type === 'NPS' ? '🏕️' : d.camp.type === 'HipCamp' ? '🦙' : d.camp.type === 'Hotel' || d.camp.type === 'Hotel/Lodge' ? '🏨' : d.camp.type === 'Family' ? '🏡' : d.camp.type === 'Harvest Host' ? '🌾' : '⛺';
     html += `<div class="section-label">Tonight's Stay</div>
