@@ -11,10 +11,10 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root {
-  --bg: #0c1510;
-  --card: #162019;
-  --card2: #1e2d22;
-  --border: #2d4030;
+  --bg: #08100e;
+  --card: #101a16;
+  --card2: #182620;
+  --border: #243c2c;
   --accent: #e8782a;
   --accent2: #f5a823;
   --text: #f0ede6;
@@ -44,9 +44,9 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 #content { flex: 1; overflow: hidden; position: relative; }
 .tab-pane { position: absolute; inset: 0; overflow-y: auto; padding: 14px 14px 90px; display: none; -webkit-overflow-scrolling: touch; }
 .tab-pane.active { display: block; }
-#nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(13,18,32,0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: max(env(safe-area-inset-bottom), 6px); }
+#nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(8,16,14,0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid #2a5a3a; box-shadow: 0 -4px 30px rgba(58,188,170,0.08); display: flex; z-index: 100; padding-bottom: max(env(safe-area-inset-bottom), 6px); }
 .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 0.63rem; font-weight: 600; color: var(--muted); cursor: pointer; padding: 10px 4px 8px; transition: all 0.15s; border: none; background: none; letter-spacing: 0.02em; }
-.nav-btn.active { color: var(--accent); }
+.nav-btn.active { color: var(--accent); text-shadow: 0 0 10px rgba(232,120,42,0.5); }
 .nav-btn .icon { font-size: 1.35rem; line-height: 1; }
 .nav-btn.active .icon { transform: scale(1.1); }
 
@@ -65,14 +65,14 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .day-nav-btn:active { background: var(--card2); transform: scale(0.97); }
 .day-nav-center { text-align: center; flex: 1; }
 .day-nav-date { font-size: 0.78rem; color: var(--muted); }
-.day-nav-num { font-size: 0.88rem; font-weight: 800; color: var(--accent); margin-top: 2px; }
+.day-nav-num { font-size: 0.88rem; font-weight: 800; color: var(--accent); margin-top: 2px; text-shadow: 0 0 12px rgba(232,120,42,0.6); }
 
 /* ── HERO BANNER ── */
 .hero-banner { border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; position: relative; }
 .hero-gradient { padding: 20px 18px 16px; position: relative; }
-.hero-gradient::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%); }
+.hero-gradient::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.4) 100%); } .hero-gradient::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, rgba(245,200,80,0.12) 0%, transparent 60%); z-index: 0; }
 .hero-content { position: relative; z-index: 1; }
-.hero-emoji { font-size: 2.8rem; line-height: 1; margin-bottom: 6px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4)); }
+.hero-emoji { font-size: 3.2rem; line-height: 1; margin-bottom: 6px; filter: drop-shadow(0 0 16px rgba(245,168,35,0.5)) drop-shadow(0 2px 8px rgba(0,0,0,0.4)); }
 .hero-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8; margin-bottom: 4px; }
 .hero-title { font-size: 1.4rem; font-weight: 900; line-height: 1.2; letter-spacing: -0.02em; text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
 .hero-leg { font-size: 0.82rem; opacity: 0.75; margin-top: 4px; }
@@ -83,7 +83,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .hero-stat-lbl { font-size: 0.6rem; opacity: 0.65; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; }
 
 /* ── WARNING BANNER ── */
-.warn-banner { background: linear-gradient(135deg, #2d0a0a, #3d1010); border: 1px solid #7f1d1d; border-radius: var(--radius); padding: 13px 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
+.warn-banner { background: linear-gradient(135deg, #1e0808, #2d0e10); border: 1px solid #7f1d1d; border-radius: var(--radius); padding: 13px 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
 .warn-banner .icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
 .warn-text { font-size: 0.8rem; line-height: 1.55; color: #fecaca; }
 
@@ -114,7 +114,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .td-camp .timeline-dot { background: #0d3018; }
 
 /* ── CAMP CARD ── */
-.camp-card { background: linear-gradient(135deg, #0a2d14, #0d3018); border: 1px solid #166534; border-radius: var(--radius); overflow: hidden; margin: 14px 0 0; }
+.camp-card { background: linear-gradient(135deg, #0a2018, #0d2c1a); border: 1px solid #2a6040; box-shadow: 0 0 20px rgba(42,160,90,0.1), inset 0 1px 0 rgba(255,255,255,0.04); border-radius: var(--radius); overflow: hidden; margin: 14px 0 0; }
 .camp-card-header { padding: 14px 16px 12px; border-bottom: 1px solid rgba(22,101,52,0.4); display: flex; align-items: center; gap: 10px; }
 .camp-card-icon { font-size: 1.6rem; }
 .camp-card-title { font-size: 1rem; font-weight: 800; color: #86efac; line-height: 1.2; }
@@ -140,7 +140,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .trip-progress-strip { background: var(--card); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; border: 1px solid var(--border); }
 .tps-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
 .tps-bar { height: 6px; background: var(--border); border-radius: 6px; overflow: hidden; }
-.tps-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #f97316, #ef4444); border-radius: 6px; }
+.tps-fill { height: 100%; background: linear-gradient(90deg, #3abcaa, #52b87a, #e8782a, #f5a823); border-radius: 6px; box-shadow: 0 0 8px rgba(232,120,42,0.4); }
 .tps-stats { display: flex; justify-content: space-between; margin-top: 8px; }
 .tps-stat { font-size: 0.7rem; color: var(--muted); }
 .tps-stat span { color: var(--text); font-weight: 700; }
@@ -155,7 +155,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .day-card-right { text-align: right; flex-shrink: 0; padding-left: 8px; }
 .day-card-right .dc-miles { font-size: 0.88rem; font-weight: 800; color: var(--accent); }
 .day-card-right .dc-time { font-size: 0.67rem; color: var(--muted); margin-top: 2px; }
-.day-card-emoji { font-size: 1.5rem; margin-right: 6px; }
+.day-card-emoji { font-size: 1.5rem; margin-right: 6px; filter: drop-shadow(0 0 6px rgba(245,168,35,0.4)); }
 .day-card-detail { display: none; padding: 12px 14px; border-top: 1px solid var(--border); background: var(--card); }
 .day-card-detail.open { display: block; }
 .detail-section { margin-top: 10px; }
