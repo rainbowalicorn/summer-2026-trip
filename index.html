@@ -1367,13 +1367,27 @@ function toggleHike(key, el) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// INIT
+// INIT v2.1
 // ═══════════════════════════════════════════════════════════
+function safeRender(fn, name) {
+  try { fn(); }
+  catch(e) {
+    console.error('Render error in ' + name + ':', e);
+    const p = document.getElementById('pane-today');
+    if (p && name === 'renderToday') {
+      p.innerHTML = `<div style="padding:20px;color:#e85c45;font-size:0.9rem">
+        <strong>App error:</strong> ${e.message}<br><br>
+        <button onclick="location.reload()" style="background:#e8782a;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:1rem;">Reload App</button>
+      </div>`;
+    }
+  }
+}
+
 const todayIdx = getTodayIdx();
 currentDayIdx = todayIdx >= 0 ? todayIdx : 0;
-renderToday();
-renderAllDays();
-renderRef();
+safeRender(renderToday, 'renderToday');
+safeRender(renderAllDays, 'renderAllDays');
+safeRender(renderRef, 'renderRef');
 </script>
 </body>
 </html>
