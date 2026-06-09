@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f172a">
+<title>🚐 Summer 2026 Road Trip</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root {
+  --bg: #0a0f1e;
+  --card: #131c2e;
+  --card2: #1a2640;
+  --border: #1e3050;
+  --accent: #f59e0b;
+  --accent2: #fbbf24;
+  --text: #e8f0fe;
+  --muted: #7a90b0;
+  --green: #34d399;
+  --red: #f87171;
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+  --teal: #2dd4bf;
+  --radius: 14px;
+  --nav-h: 68px;
+}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
+
+/* ── LAYOUT ── */
+#app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+#header { background: linear-gradient(180deg, #0e1628 0%, #131c2e 100%); border-bottom: 1px solid var(--border); padding: 14px 16px 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; }
+#header-left h1 { font-size: 1rem; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
+#header-left .sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+#progress-wrap { width: 80px; }
+#progress-label { font-size: 0.62rem; color: var(--muted); text-align: right; margin-bottom: 3px; }
+#progress-bar { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+#progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 4px; transition: width 0.5s ease; }
+#content { flex: 1; overflow: hidden; position: relative; }
+.tab-pane { position: absolute; inset: 0; overflow-y: auto; padding: 14px 14px 90px; display: none; -webkit-overflow-scrolling: touch; }
+.tab-pane.active { display: block; }
+#nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(13,18,32,0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: max(env(safe-area-inset-bottom), 6px); }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 0.63rem; font-weight: 600; color: var(--muted); cursor: pointer; padding: 10px 4px 8px; transition: all 0.15s; border: none; background: none; letter-spacing: 0.02em; }
+.nav-btn.active { color: var(--accent); }
+.nav-btn .icon { font-size: 1.35rem; line-height: 1; }
+.nav-btn.active .icon { transform: scale(1.1); }
+
+/* ── PILLS / BADGES ── */
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em; }
+.pill-green { background: #0a2e20; color: var(--green); border: 1px solid #0d3d29; }
+.pill-amber { background: #2d1a00; color: var(--accent); border: 1px solid #3d2200; }
+.pill-red { background: #2d0a0a; color: var(--red); border: 1px solid #3d1010; }
+.pill-blue { background: #0a1e3d; color: var(--blue); border: 1px solid #0d2850; }
+.pill-purple { background: #1a0a3d; color: var(--purple); border: 1px solid #220d50; }
+.pill-teal { background: #0a2d2d; color: var(--teal); border: 1px solid #0d3d3d; }
+
+/* ── DAY NAVIGATOR ── */
+.day-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+.day-nav-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 10px 18px; border-radius: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+.day-nav-btn:active { background: var(--card2); transform: scale(0.97); }
+.day-nav-center { text-align: center; flex: 1; }
+.day-nav-date { font-size: 0.78rem; color: var(--muted); }
+.day-nav-num { font-size: 0.88rem; font-weight: 800; color: var(--accent); margin-top: 2px; }
+
+/* ── HERO BANNER ── */
+.hero-banner { border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; position: relative; }
+.hero-gradient { padding: 20px 18px 16px; position: relative; }
+.hero-gradient::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%); }
+.hero-content { position: relative; z-index: 1; }
+.hero-emoji { font-size: 2.8rem; line-height: 1; margin-bottom: 6px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4)); }
+.hero-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8; margin-bottom: 4px; }
+.hero-title { font-size: 1.4rem; font-weight: 900; line-height: 1.2; letter-spacing: -0.02em; text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+.hero-leg { font-size: 0.82rem; opacity: 0.75; margin-top: 4px; }
+.hero-stats-row { display: flex; gap: 0; margin-top: 14px; background: rgba(0,0,0,0.25); border-radius: 10px; overflow: hidden; }
+.hero-stat { flex: 1; padding: 8px 12px; text-align: center; border-right: 1px solid rgba(255,255,255,0.1); }
+.hero-stat:last-child { border-right: none; }
+.hero-stat-val { font-size: 0.95rem; font-weight: 800; }
+.hero-stat-lbl { font-size: 0.6rem; opacity: 0.65; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ── WARNING BANNER ── */
+.warn-banner { background: linear-gradient(135deg, #2d0a0a, #3d1010); border: 1px solid #7f1d1d; border-radius: var(--radius); padding: 13px 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
+.warn-banner .icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.warn-text { font-size: 0.8rem; line-height: 1.55; color: #fecaca; }
+
+/* ── TIMELINE ── */
+.timeline { position: relative; padding-left: 4px; }
+.timeline-section-header { font-size: 0.63rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 16px 0 8px 46px; }
+.timeline-item { display: flex; gap: 0; margin-bottom: 6px; position: relative; }
+.timeline-left { display: flex; flex-direction: column; align-items: center; width: 42px; flex-shrink: 0; }
+.timeline-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0; z-index: 1; border: 2px solid rgba(255,255,255,0.08); }
+.timeline-line { width: 2px; background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%); flex: 1; min-height: 8px; margin-top: 2px; }
+.timeline-right { flex: 1; background: var(--card); border-radius: 12px; padding: 10px 12px; margin-bottom: 0; border: 1px solid var(--border); margin-left: 6px; }
+.timeline-right:hover { border-color: rgba(255,255,255,0.12); }
+.tl-name { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; line-height: 1.3; }
+.tl-note { font-size: 0.75rem; color: var(--muted); line-height: 1.5; }
+.td-fuel { background: #0d1e3d; border-color: #1e3a6e; }
+.td-fuel .timeline-dot { background: #1a3260; }
+.td-stop { background: #1e1208; border-color: #4a2e10; }
+.td-stop .timeline-dot { background: #3b2010; }
+.td-lunch { background: #0a1e12; border-color: #1a4a28; }
+.td-lunch .timeline-dot { background: #0d3018; }
+.td-spring { background: #0a1e1e; border-color: #1a4a4a; }
+.td-spring .timeline-dot { background: #0d3030; }
+.td-grocery { background: #0d0d2e; border-color: #1e1e5a; }
+.td-grocery .timeline-dot { background: #151538; }
+.td-warn { background: #2d0a0a; border-color: #7f1d1d; }
+.td-warn .timeline-dot { background: #450a0a; }
+.td-camp { background: #0a1e10; border-color: #166534; }
+.td-camp .timeline-dot { background: #0d3018; }
+
+/* ── CAMP CARD ── */
+.camp-card { background: linear-gradient(135deg, #0a2d14, #0d3018); border: 1px solid #166534; border-radius: var(--radius); overflow: hidden; margin: 14px 0 0; }
+.camp-card-header { padding: 14px 16px 12px; border-bottom: 1px solid rgba(22,101,52,0.4); display: flex; align-items: center; gap: 10px; }
+.camp-card-icon { font-size: 1.6rem; }
+.camp-card-title { font-size: 1rem; font-weight: 800; color: #86efac; line-height: 1.2; }
+.camp-card-sub { font-size: 0.73rem; color: #4ade80; opacity: 0.8; margin-top: 2px; }
+.camp-rows { padding: 10px 16px 14px; }
+.camp-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; padding: 5px 0; border-bottom: 1px solid rgba(22,101,52,0.25); }
+.camp-row:last-child { border-bottom: none; }
+.camp-label { color: #4ade80; opacity: 0.7; }
+.camp-value { font-weight: 600; text-align: right; color: var(--text); }
+.conf-num { font-family: 'SF Mono', 'Consolas', monospace; color: var(--accent); font-size: 0.82rem; letter-spacing: 0.06em; }
+
+/* ── HIKE CARDS ── */
+.hikes-grid { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.hike-card { background: linear-gradient(135deg, #1a0d3d, #150d2e); border: 1px solid #2e1065; border-radius: 11px; padding: 10px 13px; display: flex; gap: 10px; align-items: flex-start; }
+.hike-card-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+.hike-card-body { flex: 1; }
+.hike-card-name { font-size: 0.87rem; font-weight: 700; color: #c4b5fd; margin-bottom: 3px; }
+.hike-card-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.hike-meta-badge { font-size: 0.63rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; background: rgba(255,255,255,0.07); color: var(--muted); border: 1px solid rgba(255,255,255,0.08); }
+.hike-card-note { font-size: 0.73rem; color: var(--muted); line-height: 1.5; }
+
+/* ── ALL DAYS ── */
+.trip-progress-strip { background: var(--card); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; border: 1px solid var(--border); }
+.tps-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+.tps-bar { height: 6px; background: var(--border); border-radius: 6px; overflow: hidden; }
+.tps-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #f97316, #ef4444); border-radius: 6px; }
+.tps-stats { display: flex; justify-content: space-between; margin-top: 8px; }
+.tps-stat { font-size: 0.7rem; color: var(--muted); }
+.tps-stat span { color: var(--text); font-weight: 700; }
+
+.day-card { border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; cursor: pointer; border: 1px solid var(--border); transition: border-color 0.15s; }
+.day-card:active { transform: scale(0.99); }
+.day-card-strip { height: 3px; }
+.day-card-header { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; background: var(--card); }
+.day-card-left .dc-date { font-size: 0.67rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.day-card-left .dc-dest { font-size: 0.96rem; font-weight: 800; margin: 3px 0 2px; letter-spacing: -0.01em; }
+.day-card-left .dc-summary { font-size: 0.72rem; color: var(--muted); }
+.day-card-right { text-align: right; flex-shrink: 0; padding-left: 8px; }
+.day-card-right .dc-miles { font-size: 0.88rem; font-weight: 800; color: var(--accent); }
+.day-card-right .dc-time { font-size: 0.67rem; color: var(--muted); margin-top: 2px; }
+.day-card-emoji { font-size: 1.5rem; margin-right: 6px; }
+.day-card-detail { display: none; padding: 12px 14px; border-top: 1px solid var(--border); background: var(--card); }
+.day-card-detail.open { display: block; }
+.detail-section { margin-top: 10px; }
+.detail-section h4 { font-size: 0.62rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.detail-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; font-size: 0.78rem; }
+.detail-row .icon { flex-shrink: 0; line-height: 1.6; }
+.detail-row .txt { line-height: 1.45; }
+.detail-row .sub { color: var(--muted); font-size: 0.7rem; margin-top: 1px; }
+
+/* ── MAP ── */
+#map { width: 100%; height: 100%; }
+.map-pane { padding: 0 !important; }
+
+/* ── QUICK REF ── */
+.ref-section { margin-bottom: 18px; }
+.ref-section h3 { font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; padding-left: 10px; border-left: 3px solid var(--accent); display: flex; align-items: center; gap: 6px; }
+.ref-state-header { font-size: 0.65rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin: 12px 0 6px; padding-left: 2px; }
+.ref-item { background: var(--card); border-radius: 11px; padding: 11px 13px; margin-bottom: 5px; border: 1px solid var(--border); }
+.ref-name { font-size: 0.86rem; font-weight: 700; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ref-addr { font-size: 0.71rem; color: var(--muted); margin-bottom: 3px; }
+.ref-note { font-size: 0.71rem; color: var(--muted); line-height: 1.4; }
+.ref-item.critical { border-color: #7f1d1d; background: linear-gradient(135deg, #1a0a0a, #220d0d); }
+
+/* ── SECTION LABEL ── */
+.section-label { font-size: 0.63rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 16px 0 8px; }
+
+/* ── MISC ── */
+.countdown-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 20px; }
+.countdown-num { font-size: 5rem; font-weight: 900; background: linear-gradient(135deg, var(--accent), var(--orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+.countdown-label { font-size: 0.9rem; color: var(--muted); margin-top: 8px; }
+.countdown-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; opacity: 0.7; }
+
+/* Leaflet popup override */
+.leaflet-popup-content-wrapper { background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+.leaflet-popup-tip { background: var(--card); }
+.leaflet-popup-content { font-size: 0.82rem; line-height: 1.55; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="header-left">
+      <h1>🚐 Summer 2026</h1>
+      <div class="sub" id="header-sub">Jun 14 – Jul 12 · 29 Days</div>
+    </div>
+    <div id="progress-wrap">
+      <div id="progress-label">0 / 29</div>
+      <div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div id="content">
+    <div class="tab-pane active" id="pane-today"></div>
+    <div class="tab-pane" id="pane-days"></div>
+    <div class="tab-pane map-pane" id="pane-map"><div id="map"></div></div>
+    <div class="tab-pane" id="pane-ref"></div>
+  </div>
+  <nav id="nav">
+    <button class="nav-btn active" onclick="showTab('today',this)"><span class="icon">🗓️</span>Today</button>
+    <button class="nav-btn" onclick="showTab('days',this)"><span class="icon">📅</span>All Days</button>
+    <button class="nav-btn" onclick="showTab('map',this)"><span class="icon">🗺️</span>Map</button>
+    <button class="nav-btn" onclick="showTab('ref',this)"><span class="icon">⚡</span>Quick Ref</button>
+  </nav>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// TRIP DATA
+// ═══════════════════════════════════════════════════════════
+
+const TRIP_START = new Date('2026-06-14');
+const TRIP_END   = new Date('2026-07-12');
+
+const DAYS = [
+  {
+    date:'2026-06-14', day:1, label:'Departure Day',
+    from:'Fairfax, CA', to:'June Lake, CA',
+    miles:'280', time:'5 hrs', nights:3,
+    camp:{name:'Oh Ridge Campground',loc:'June Lake, CA',site:'156 (Gull Loop)',checkin:'2:00 PM',checkout:'12:00 PM',conf:'0809530963-1',type:'NPS/State'},
+    fuel:[{name:'76 — Petaluma, CA',type:'R99',note:'Best renewable diesel before heading east. On US-101.'},
+          {name:'Lee Vining Chevron',type:'ULSD',note:'51557 US-395 · Last reliable fuel before camp.'}],
+    lunch:{name:'Whoa Nellie Deli',loc:'Tioga Gas Mart, Lee Vining CA',note:'Seasonal — check if open. Best food on 395.'},
+    stops:[{name:'Mono Lake South Tufa',note:'~1 mi, free. Alien tufa towers off US-395. Talia will love the weird landscape.',priority:'top'}],
+    hotspring:null,
+    grocery:{name:'TJ\'s + Costco — San Rafael',note:'Pre-trip stock-up. Costco: 150 Shoreline Pkwy. TJ\'s: 717 Third St.'},
+    hikes:[{name:'Gull Lake Loop',dist:'~1.8 mi',effort:'Easy',note:'Right from camp. Perfect arrival evening walk.'},
+           {name:'Parker Lake Trail',dist:'~3.8 mi RT',effort:'Moderate',note:'Best proper hike from June Lake. Great payoff.'},
+           {name:'June Lake beach + paddle',dist:'Flexible',effort:'Easy',note:'⭐ Talia pick. Swim, rock-skip, explore shoreline.'}],
+    reminders:[],
+  },
+  {
+    date:'2026-06-15', day:2, label:'June Lake — Rest Day',
+    from:'Oh Ridge Camp', to:'Oh Ridge Camp',
+    miles:'0', time:'Stay', nights:0,
+    camp:{name:'Oh Ridge Campground',loc:'June Lake, CA',site:'156 (Gull Loop)',checkin:'—',checkout:'—',conf:'0809530963-1',type:'NPS/State'},
+    fuel:[],
+    lunch:{name:'June Lake Village',loc:'June Lake, CA',note:'Small cafes in the village. Casual lunch day.'},
+    stops:[{name:'June Lake Loop scenic drive',note:'20-mile loop through all 4 lakes. Pretty and easy.',priority:'top'}],
+    hotspring:{name:'Travertine Hot Springs',loc:'Bridgeport, CA (nearby)',note:'Free, 5-6 pools off US-395. Plan for the drive day tomorrow.'},
+    grocery:null,
+    hikes:[{name:'Parker Lake Trail',dist:'~3.8 mi RT',effort:'Moderate',note:'If not done Day 1.'},
+           {name:'Gull Lake + June Lake shoreline',dist:'Flexible',effort:'Easy',note:'Best low-key Talia day.'}],
+    reminders:[],
+  },
+  {
+    date:'2026-06-16', day:3, label:'June Lake — Rest Day',
+    from:'Oh Ridge Camp', to:'Oh Ridge Camp',
+    miles:'0', time:'Stay', nights:0,
+    camp:{name:'Oh Ridge Campground',loc:'June Lake, CA',site:'156 (Gull Loop)',checkin:'—',checkout:'—',conf:'0809530963-1',type:'NPS/State'},
+    fuel:[],
+    lunch:{name:'June Lake Village or Mammoth',loc:'June Lake / Mammoth Lakes',note:'Optional drive to Mammoth for lunch and supplies.'},
+    stops:[{name:'Mono Lake South Tufa (if not done)',note:'Free, right on US-395. Last chance before leaving the basin.',priority:'alt'}],
+    hotspring:null, grocery:null,
+    hikes:[{name:'Gem Lake Trail',dist:'~5.6 mi RT',effort:'Moderate',note:'Beautiful high-country lake above June Lake.'},
+           {name:'Beach day at June Lake',dist:'Flexible',effort:'Easy',note:'Best chill day option for Talia.'}],
+    reminders:[],
+  },
+  {
+    date:'2026-06-17', day:4, label:'June Lake → Doyle',
+    from:'June Lake, CA', to:'Doyle, CA',
+    miles:'150', time:'2.5–3 hrs', nights:1,
+    camp:{name:'Missy Mountain (Harvest Host)',loc:'Doyle, CA',site:'HH',checkin:'Flexible',checkout:'By morning',conf:'N/A',type:'Harvest Host'},
+    fuel:[{name:'Lee Vining Chevron',type:'ULSD',note:'Top off before heading north on US-395.'},
+          {name:'Susanville stations',type:'ULSD',note:'Shell/Chevron in Susanville — good top-off near Doyle.'}],
+    lunch:{name:'Bridgeport diner',loc:'Bridgeport, CA',note:'Small ranching town on US-395. Good fuel + food stop.'},
+    stops:[{name:'Bodie State Historic Park',note:'⭐ Don\'t skip. 13 mi off US-395 on dirt road. Most intact ghost town in US. Talia will want to live here.',priority:'top'},
+           {name:'Travertine Hot Springs',note:'Free hot spring off US-395 near Bridgeport. 5-6 pools. Bring towels!',priority:'top'}],
+    hotspring:{name:'Travertine Hot Springs',loc:'Bridgeport, CA',note:'~2 miles off US-395. Free, BLM-managed. 5-6 mineral pools with mountain views. ⭐ Do it!'},
+    grocery:null,
+    hikes:[],
+    reminders:['Doyle is a tiny town — no diesel. Fuel up in Susanville or Reno.'],
+  },
+  {
+    date:'2026-06-18', day:5, label:'Doyle → Lassen / Butte Lake',
+    from:'Doyle, CA', to:'Butte Lake, Lassen NP',
+    miles:'115', time:'2–2.5 hrs', nights:2,
+    camp:{name:'Butte Lake Campground',loc:'Lassen Volcanic NP, CA',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[{name:'Susanville — Shell/Chevron',type:'ULSD',note:'Good fill-up before heading into Lassen.'}],
+    lunch:{name:'Susanville options',loc:'Susanville, CA',note:'Last real services before the park.'},
+    stops:[{name:'Arrive Butte Lake early',note:'Short drive day — arrive with daylight and explore the lake and Cinder Cone trailhead.',priority:'top'}],
+    hotspring:null, grocery:null,
+    hikes:[{name:'Butte Lake shoreline wander',dist:'Flexible',effort:'Easy',note:'Perfect arrival evening. Lake reflecting the lava terrain.'},
+           {name:'Cinder Cone trailhead preview',dist:'0.5 mi',effort:'Easy',note:'Scout the trailhead for tomorrow\'s big hike.'}],
+    reminders:[],
+  },
+  {
+    date:'2026-06-19', day:6, label:'Lassen — Butte Lake Day',
+    from:'Butte Lake Camp', to:'Butte Lake Camp',
+    miles:'0', time:'Stay', nights:0,
+    camp:{name:'Butte Lake Campground',loc:'Lassen Volcanic NP, CA',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[], lunch:{name:'Camp lunch',loc:'Butte Lake',note:'Pack lunch for Cinder Cone.'},
+    stops:[],
+    hotspring:null, grocery:null,
+    hikes:[{name:'Cinder Cone + Painted Dunes',dist:'~4 mi RT',effort:'Moderate',note:'⭐ THE must-do at Lassen. Climb the cinder cone, then look down at the Painted Dunes. Talia will feel like a hero.'},
+           {name:'Butte Lake swim + afternoon paddle',dist:'Flexible',effort:'Easy',note:'After the hike. Cool off in the lake.'}],
+    reminders:[],
+  },
+  {
+    date:'2026-06-20', day:7, label:'Lassen → Crater Lake',
+    from:'Butte Lake, CA', to:'Mazama Campground, Crater Lake NP',
+    miles:'265', time:'5–5.5 hrs', nights:1,
+    camp:{name:'Mazama Campground',loc:'Crater Lake NP, OR',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[{name:'Redding CA — multiple',type:'ULSD',note:'Chevron/Shell/Costco on I-5. Good fill-up.'},
+          {name:'Mt. Shasta town',type:'R99',note:'76 likely carries R99. Stop for lunch + fuel.'},
+          {name:'Love\'s — Klamath Falls OR',type:'ULSD',note:'250 Dab O Brien Way. 7 diesel lanes, 24/7. ⭐ Reliable.'}],
+    lunch:{name:'Mt. Shasta town',loc:'Mt. Shasta, CA',note:'Charming mountain town. Good cafes, big volcano backdrop.'},
+    stops:[{name:'McArthur-Burney Falls',note:'⭐⭐ DON\'T SKIP. 1.3 mi RT, easy. California\'s most beautiful waterfall — cold blue-green water, swimmable at base.',priority:'top'},
+           {name:'Castle Crags viewpoint',note:'Roadside I-5 pullout. Dramatic granite spires.',priority:'alt'}],
+    hotspring:null,
+    grocery:{name:'Redding Costco',note:'1000 Dana Dr, Redding CA. Good resupply stop.'},
+    hikes:[{name:'Watchman Peak',dist:'~1.6 mi RT',effort:'Moderate',note:'⭐ Best Crater Lake hike. Short enough, views are incredible.'},
+           {name:'Rim Village + Discovery Point',dist:'Flexible',effort:'Easy',note:'Best low-effort Crater Lake experience.'}],
+    reminders:[],
+  },
+  {
+    date:'2026-06-21', day:8, label:'Crater Lake → Terrebonne',
+    from:'Mazama Camp, Crater Lake', to:'Terrebonne, OR',
+    miles:'155', time:'3–3.5 hrs', nights:1,
+    camp:{name:'Alpaca Country Estates',loc:'Terrebonne, OR',site:'—',checkin:'—',checkout:'—',conf:'—',type:'HipCamp'},
+    fuel:[{name:'Love\'s — Madras OR',type:'ULSD',note:'1678 SE US-97. On route, directly on US-97. ⭐ Easy fill-up.'}],
+    lunch:{name:'Bend — Old Mill District',loc:'Bend, OR',note:'Deschutes River outdoor dining. Great vibe.'},
+    stops:[{name:'Lava Lands + Lava Butte',note:'⭐ Right on US-97. Paved summit loop, 360° Cascade views, summer shuttle. Fast, free, great for Talia.',priority:'top'},
+           {name:'Bend lunch + Pilot Butte',note:'Two quick Bend stops. Pilot Butte has drive-up panoramic views.',priority:'alt'}],
+    hotspring:null,
+    grocery:{name:'Bend — Costco + TJ\'s + Whole Foods',note:'Costco on US-97. TJ\'s: 63455 N Hwy 97. WF: 2610 NE Hwy 20. Best resupply so far.'},
+    hikes:[{name:'Smith Rock State Park preview',dist:'Short rim walk',effort:'Easy',note:'Right near camp. Towering spires above the Crooked River.'}],
+    reminders:[],
+  },
+  {
+    date:'2026-06-22', day:9, label:'Terrebonne → Cheney WA',
+    from:'Terrebonne, OR', to:'Cheney, WA',
+    miles:'260', time:'4.5–5 hrs', nights:1,
+    camp:{name:'Funny Farm Homestead',loc:'Cheney, WA',site:'—',checkin:'—',checkout:'—',conf:'—',type:'HipCamp'},
+    fuel:[{name:'Love\'s — Boardman OR',type:'ULSD',note:'I-84 Exit 159. 8 diesel lanes, 24/7. Good mid-drive stop.'},
+          {name:'Pendleton OR — Flying J/Pilot',type:'ULSD',note:'Multiple options on I-84.'}],
+    lunch:{name:'Hood River waterfront',loc:'Hood River, OR',note:'Best Columbia Gorge lunch stop. Waterfront, great food, Mt. Hood views.'},
+    stops:[{name:'Rowena Crest viewpoint',note:'⭐ One of the best Columbia Gorge panoramas. Exit US-30 east of Hood River.',priority:'top'},
+           {name:'Maryhill Stonehenge',note:'⭐ Full-scale replica on WA-14 bluff above the Columbia. Free. "Is that STONEHENGE?!"',priority:'top'},
+           {name:'Peter Skene Ogden viewpoint',note:'Crooked River gorge bridge at departure from Terrebonne. Quick and dramatic.',priority:'alt'}],
+    hotspring:null,
+    grocery:{name:'Spokane — Costco + TJ\'s',note:'Costco: 5601 E Sprague Ave. TJ\'s: 2975 E 29th Ave. Last TJ\'s before Montana.'},
+    hikes:[], reminders:[],
+  },
+  {
+    date:'2026-06-23', day:10, label:'Cheney → Big Arm MT',
+    from:'Cheney, WA', to:'Big Arm, Flathead Lake MT',
+    miles:'225', time:'~4 hrs', nights:1,
+    camp:{name:'Big Arm Campground',loc:'Big Arm, Flathead Lake, MT',site:'—',checkin:'—',checkout:'—',conf:'—',type:'State Park'},
+    fuel:[{name:'Coeur d\'Alene — multiple',type:'ULSD',note:'CDA on I-90. Good fill-up before heading north.'},
+          {name:'Sandpoint — local stations',type:'ULSD',note:'Top-off before US-2 into Montana.'},
+          {name:'⭐ Pilot Flying J — Columbia Falls',type:'ULSD',note:'6102 US-2. FILL UP HERE. Last major truck stop before Glacier. Next Costco is 500+ miles south.'}],
+    lunch:{name:'Sandpoint waterfront',loc:'Sandpoint, ID',note:'⭐ Small mountain town on massive glacial lake. Best surprise of this leg.'},
+    stops:[{name:'Sandpoint on Lake Pend Oreille',note:'⭐ Most beautiful underrated lake town in the PNW. Good lunch, views, Talia can roam.',priority:'top'},
+           {name:'Coeur d\'Alene waterfront',note:'Blue lake, boardwalk, easy stop.',priority:'alt'}],
+    hotspring:null,
+    grocery:{name:'⭐ Kalispell — Costco + Natural Grocers',note:'Costco: 2330 US-93 N. Natural Grocers: 2395 US-93 N (next door). STOCK UP — no Costco until Idaho Falls (500+ miles south).'},
+    hikes:[{name:'Big Arm beach + sunset paddle',dist:'Flexible',effort:'Easy',note:'⭐ This IS the stop. Beach on Flathead Lake. Paddling, swimming, sunset.'},
+           {name:'Wild Horse Island (if arranged)',dist:'Boat required',effort:'Moderate',note:'Horses, bighorn sheep on the island. Worth organizing if possible.'}],
+    reminders:['Fill up completely at Pilot Flying J Columbia Falls before heading to camp.','Stock up at Kalispell Costco — this is the big supply run before Glacier.'],
+  },
+  {
+    date:'2026-06-24', day:11, label:'Big Arm → West Glacier (Fish Creek)',
+    from:'Big Arm, Flathead Lake', to:'Fish Creek Camp, West Glacier',
+    miles:'75', time:'~1.5 hrs', nights:2,
+    camp:{name:'Fish Creek Campground',loc:'West Glacier, MT',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[{name:'Kalispell — multiple',type:'ULSD',note:'Fill up if not done yesterday.'},
+          {name:'Pilot Flying J — Columbia Falls',type:'ULSD',note:'6102 US-2. Definitely fill here if not yesterday.'}],
+    lunch:{name:'Columbia Falls',loc:'Columbia Falls, MT',note:'Small gateway town. Good quick lunch before entering Glacier.'},
+    stops:[{name:'West Glacier park entrance',note:'Short drive — arrive early and settle in.',priority:'alt'}],
+    hotspring:null, grocery:null,
+    hikes:[{name:'Avalanche Lake via Trail of the Cedars',dist:'~5.9 mi RT',effort:'Moderate',note:'⭐ Best west-side hike. Enchanted forest of giant cedars and bridges to a dramatic lake bowl.'},
+           {name:'Trail of the Cedars loop',dist:'~1 mi',effort:'Easy',note:'Boardwalk through old-growth cedar. Talia loves it.'},
+           {name:'Lake McDonald shoreline / Apgar',dist:'~1 mi flexible',effort:'Easy',note:'Rocky beach, pretty water, great for exploring.'}],
+    reminders:['Bear spray: buy in Columbia Falls if you don\'t have it already. Required for Glacier backcountry.','GTTS Road timed entry ticket needed for Jun 26 — verify on recreation.gov!'],
+  },
+  {
+    date:'2026-06-25', day:12, label:'West Glacier — Glacier West Side Day',
+    from:'Fish Creek Camp', to:'Fish Creek Camp',
+    miles:'0', time:'Stay', nights:0,
+    camp:{name:'Fish Creek Campground',loc:'West Glacier, MT',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[], lunch:{name:'Picnic on trail',loc:'Glacier NP west side',note:'Pack lunch for Avalanche Lake if not done yesterday.'},
+    stops:[], hotspring:null, grocery:null,
+    hikes:[{name:'Avalanche Lake via Trail of the Cedars',dist:'~5.9 mi RT',effort:'Moderate',note:'⭐ Do this today if not done yesterday. Best west-side adventure hike.'},
+           {name:'Johns Lake Loop',dist:'~1.5 mi',effort:'Easy',note:'Good lighter option near Lake McDonald.'},
+           {name:'Apgar wandering + Lake McDonald',dist:'Flexible',effort:'Easy',note:'Rocky lakeshore, afternoon swim.'}],
+    reminders:['Tomorrow is GTTS Road day — need timed entry ticket. Check recreation.gov.'],
+  },
+  {
+    date:'2026-06-26', day:13, label:'Going-to-the-Sun Road Day',
+    shaka:{name:'Glacier: Going-to-the-Sun Road', url:'https://www.shakaguide.com/tours/pacific-northwest/glacier-national-park-going-to-the-sun-road-tour'},
+    from:'Fish Creek Camp → GTTS Road', to:'Leaning Tree Camp, Babb',
+    miles:'105', time:'2.5–3 hrs (slow — GTTS traffic)', nights:1,
+    camp:{name:'Leaning Tree Campground',loc:'Babb, MT (near Many Glacier)',site:'—',checkin:'—',checkout:'—',conf:'—',type:'Private/Camp'},
+    fuel:[{name:'West Glacier small station',type:'ULSD',note:'Small station near park entrance. Verify open.'},
+          {name:'Browning — Exxon',type:'ULSD',note:'304 SE Boundary St, Browning MT. ⭐ Key east-side diesel stop.'}],
+    lunch:{name:'Picnic at Logan Pass or St. Mary',loc:'Logan Pass / St. Mary area',note:'Pack it. Bring layers — it\'s cold at Logan Pass.'},
+    stops:[{name:'Hidden Lake Overlook — Logan Pass',note:'⭐ 2.8 mi RT, moderate. Mountain goats/bighorn, huge alpine views. The iconic GTTS experience.',priority:'top'},
+           {name:'Sun Point Nature Trail',note:'1-2 mi flexible. Good second stop on the east side.',priority:'alt'},
+           {name:'Scenic pullouts the whole drive',note:'The road IS the experience. Don\'t rush.',priority:'alt'}],
+    hotspring:null, grocery:null,
+    hikes:[{name:'Hidden Lake Overlook',dist:'~2.8 mi RT',effort:'Moderate',note:'⭐ Do this at Logan Pass. Wildlife potential is high.'},
+           {name:'Sun Point shoreline',dist:'1-2 mi',effort:'Easy',note:'Good wind-down stop on the east side.'}],
+    reminders:['⚠️ TIMED ENTRY TICKET required for GTTS Road. Must have it on your phone.','Going-to-the-Sun Road is slow — budget the full 3 hours to cross.','COLD at Logan Pass (10,000 ft) — bring layers even in June.','Parking at Logan Pass is extremely limited. Arrive before 9am or use shuttle.'],
+  },
+  {
+    date:'2026-06-27', day:14, label:'Many Glacier — East Side',
+    shaka:{name:'Glacier: Many Glacier', url:'https://www.shakaguide.com/tours/pacific-northwest/glacier-many-glacier-tour'},
+    from:'Leaning Tree Camp, Babb', to:'St. Mary Campground',
+    miles:'9', time:'15 min', nights:2,
+    camp:{name:'St. Mary Campground',loc:'St. Mary, MT',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[{name:'Browning — Exxon',type:'ULSD',note:'304 SE Boundary St. Fill up if not done yesterday.'}],
+    lunch:{name:'Many Glacier Hotel area',loc:'Many Glacier, MT',note:'Hotel has a cafe/restaurant. Good base for the big day.'},
+    stops:[], hotspring:null, grocery:null,
+    hikes:[{name:'Grinnell Glacier via boat + hike',dist:'~7.6 mi RT after boat',effort:'Big day',note:'⭐⭐ THE marquee Glacier adventure. Boat ride + turquoise water + glacier payoff = elite memory. Check glacierparkboats.com for availability.'},
+           {name:'Swiftcurrent Lake wander',dist:'1-3 mi',effort:'Easy',note:'Easy Many Glacier option if saving energy for tomorrow.'},
+           {name:'St. Mary Falls + Virginia Falls',dist:'~3.6 mi RT',effort:'Moderate',note:'⭐ Best moderate east-side hike. Waterfalls, spray, dramatic.'}],
+    reminders:['Grinnell Glacier boat: check glacierparkboats.com — watching for Jun 27/28 availability.','Arrive at Many Glacier by 8am for best parking.'],
+  },
+  {
+    date:'2026-06-28', day:15, label:'Glacier East Side — Day 2',
+    shaka:{name:'Glacier: Many Glacier', url:'https://www.shakaguide.com/tours/pacific-northwest/glacier-many-glacier-tour'},
+    from:'St. Mary Camp', to:'St. Mary Camp',
+    miles:'0', time:'Stay', nights:0,
+    camp:{name:'St. Mary Campground',loc:'St. Mary, MT',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[], lunch:{name:'Pack lunch',loc:'On trail',note:'Pack for a full hike day.'},
+    stops:[], hotspring:null, grocery:null,
+    hikes:[{name:'Grinnell Glacier (if not done Jun 27)',dist:'~7.6 mi after boat',effort:'Big day',note:'⭐ Prioritize this day if boat was unavailable yesterday.'},
+           {name:'St. Mary Falls + Virginia Falls',dist:'~3.6 mi RT',effort:'Moderate',note:'⭐ If Grinnell is done — this is the next best thing.'},
+           {name:'Iceberg Lake',dist:'~9.6 mi RT',effort:'Big day',note:'Only if everyone has very strong legs. Floating icebergs at the end — legendary.'}],
+    reminders:['Tomorrow is the BIG drive day to Yellowstone. 415 miles. Start EARLY — ideally 7am departure.'],
+  },
+  {
+    date:'2026-06-29', day:16, label:'Glacier → Yellowstone (LONG DAY)',
+    shaka:{name:'Yellowstone National Park', url:'https://www.shakaguide.com/tours/yellowstone-teton/yellowstone-national-park-tour'},
+    from:'St. Mary, MT', to:'Canyon Campground, Yellowstone',
+    miles:'415', time:'7.5–8.5 hrs — START EARLY', nights:1,
+    camp:{name:'Canyon Campground',loc:'Yellowstone NP, WY',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[{name:'Browning — Exxon (last fill before big drive)',type:'ULSD',note:'Fill up completely in Browning before heading south.'},
+          {name:'Great Falls MT — Flying J/TA',type:'ULSD',note:'Major truck stop options in Great Falls. Good mid-drive stop.'},
+          {name:'Livingston MT — multiple',type:'ULSD',note:'Last fill before Gardiner/Yellowstone entrance.'},
+          {name:'Gardiner MT — gateway diesel',type:'ULSD',note:'Fill up HERE before entering the park. Cheaper than inside.'}],
+    lunch:{name:'Missoula — Clark Fork Riverfront',loc:'Missoula, MT',note:'Good mid-drive city stop. Caras Park on river. TA truck stop for diesel.'},
+    stops:[{name:'Earthquake Lake (Quake Lake)',note:'⭐ Hwy 287. 1959 earthquake dammed the Madison overnight. Drowned trees visible. One of the best storytelling stops of the whole trip.',priority:'top'},
+           {name:'Bitterroot Valley scenic drive',note:'US-93 south through Hamilton. Wide Montana valley, gorgeous.',priority:'alt'}],
+    hotspring:{name:'Chico Hot Springs',loc:'Pray, MT — on US-89 in Paradise Valley',note:'Historic resort, 23 mi south of Livingston on US-89. Directly on route to Gardiner! Great mid-drive soak. Day use available. Check chicohotsprings.com.'},
+    grocery:{name:'Missoula — Costco + Good Food Store',note:'Costco: 3220 N Reserve St. Good Food Store (co-op): 1600 S 3rd St W. Perfect lunch city.'},
+    hikes:[], reminders:['⚠️ LONG DAY. 415 miles, 7.5+ hours. Depart by 7am.','Chico Hot Springs is a worthwhile mid-morning stop on US-89 before Gardiner.','Fill tank in Gardiner before entering — inside park fuel costs more.'],
+  },
+  {
+    date:'2026-06-30', day:17, label:'Yellowstone Canyon Day',
+    shaka:{name:'Yellowstone National Park', url:'https://www.shakaguide.com/tours/yellowstone-teton/yellowstone-national-park-tour'},
+    from:'Canyon Camp', to:'Madison Camp',
+    miles:'30', time:'45 min', nights:1,
+    camp:{name:'Madison Campground',loc:'Yellowstone NP, WY',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[{name:'Canyon Village — YPSS Sinclair',type:'ULSD',note:'24/7 credit card. Inside Yellowstone — slightly more expensive.'},
+          {name:'Madison — YPSS Sinclair',type:'ULSD',note:'At your new camp. 24/7 credit card.'}],
+    lunch:{name:'Canyon Village area',loc:'Yellowstone NP',note:'Canyon Lodge or picnic near the falls.'},
+    stops:[{name:'Hayden Valley — wildlife at dawn',note:'⭐ Drive through at first light. Bison herds, possible wolf/bear sightings. This is the best wildlife corridor in North America.',priority:'top'}],
+    hotspring:null, grocery:null,
+    hikes:[{name:'Brink of Lower Falls',dist:'~0.7 mi RT',effort:'Hard/steep',note:'⭐ One of the most exciting short hikes in Yellowstone. You stand almost ON TOP of a crashing 308-ft waterfall. Talia will lose her mind.'},
+           {name:'South Rim Trail to Point Sublime',dist:'~3 mi RT',effort:'Moderate',note:'Wild canyon edge walking away from the crowds.'},
+           {name:'Artist Point',dist:'0.1 mi',effort:'Easy',note:'Iconic canyon viewpoint. Do it first thing.'}],
+    reminders:[],
+  },
+  {
+    date:'2026-07-01', day:18, label:'Madison → Grant Village (Transit Day)',
+    shaka:{name:'Yellowstone National Park', url:'https://www.shakaguide.com/tours/yellowstone-teton/yellowstone-national-park-tour'},
+    from:'Madison Camp', to:'Grant Village, Yellowstone',
+    miles:'50', time:'1.5 hrs', nights:1,
+    camp:{name:'Grant Village Campground',loc:'Yellowstone NP, WY',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[{name:'Grant Village — YPSS Sinclair',type:'ULSD',note:'24/7 credit card.'},
+          {name:'Fishing Bridge — YPSS Sinclair',type:'ULSD',note:'Extra option near Yellowstone Lake.'}],
+    lunch:{name:'Old Faithful Inn or picnic',loc:'Old Faithful area',note:'Watch the eruption (~90 min cycle) then lunch.'},
+    stops:[{name:'Old Faithful eruption',note:'⭐ Check the NPS app for next predicted eruption time. Classic.',priority:'top'}],
+    hotspring:null, grocery:null,
+    hikes:[{name:'Grand Prismatic Overlook Trail',dist:'~1.2 mi RT',effort:'Easy',note:'⭐ One of the best earned views in Yellowstone. The full rainbow pool from above.'},
+           {name:'Mystic Falls Trail',dist:'~2.4 mi RT',effort:'Moderate',note:'Geothermal terrain + real waterfall. Great combo.'},
+           {name:'Lone Star Geyser',dist:'~4.8 mi RT',effort:'Easy',note:'Quieter, more adventurous geyser mission.'}],
+    reminders:[],
+  },
+  {
+    date:'2026-07-02', day:19, label:'Grant Village → Colter Bay, Grand Teton',
+    shaka:{name:'Grand Teton National Park', url:'https://www.shakaguide.com/tours/yellowstone-teton/grand-teton-national-park-tour'},
+    from:'Grant Village, Yellowstone', to:'Colter Bay, Grand Teton NP',
+    miles:'50', time:'1–1.5 hrs', nights:1,
+    camp:{name:'Colter Bay Campground',loc:'Grand Teton NP, WY',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[{name:'Colter Bay — NPS fuel',type:'ULSD',note:'Grand Teton park fuel station at Colter Bay. Verify diesel available.'},
+          {name:'Maverik — Jackson WY',type:'ULSD',note:'1005 S US-89. ⭐ Best diesel in Jackson. Stock tip for Teton days.'}],
+    lunch:{name:'West Thumb Geyser Basin area',loc:'South Yellowstone / Teton entrance',note:'Pack a picnic or eat at Grant Village before leaving.'},
+    stops:[{name:'West Thumb Geyser Basin',note:'Easy 0.5-mi loop. Boiling thermal features right on Yellowstone Lake. Weird and wonderful.',priority:'alt'}],
+    hotspring:null, grocery:null,
+    hikes:[{name:'Taggart + Bradley Lake loop',dist:'~4.7 mi',effort:'Easy-Moderate',note:'⭐ Best family Teton hike. Footbridges, moraine, pristine alpine lakes beneath the peaks.'},
+           {name:'String Lake loop',dist:'1-3.5 mi',effort:'Easy',note:'Good for Talia. Logs, boulders, wading, easy roaming.'},
+           {name:'Colter Bay Lakeshore Trail',dist:'~2 mi',effort:'Easy',note:'Easy backup, beautiful Jackson Lake views.'}],
+    reminders:[],
+  },
+  {
+    date:'2026-07-03', day:20, label:'Colter Bay → Teton Village',
+    shaka:{name:'Grand Teton National Park', url:'https://www.shakaguide.com/tours/yellowstone-teton/grand-teton-national-park-tour'},
+    from:'Colter Bay, Grand Teton', to:'The Hostel, Teton Village',
+    miles:'45', time:'1–1.25 hrs', nights:1,
+    camp:{name:'The Hostel',loc:'Teton Village, WY',site:'—',checkin:'—',checkout:'—',conf:'—',type:'Hotel/Lodge'},
+    fuel:[{name:'Maverik — Jackson WY',type:'ULSD',note:'1005 S US-89. Fill up here for Teton days.'}],
+    lunch:{name:'Jackson town or pack it',loc:'Jackson, WY',note:'Jackson has good options. Natural Grocers for fresh food.'},
+    stops:[], hotspring:null,
+    grocery:{name:'Natural Grocers — Jackson WY',note:'Best natural grocery in the area. No Costco or WF in Jackson.'},
+    hikes:[{name:'Aerial Tram + ridge wander',dist:'1-3 mi',effort:'Moderate',note:'⭐ Tomorrow\'s plan. Ride to 10,450 ft. BRING LAYERS. Cold up there.'},
+           {name:'Phelps Lake overlook or Jump Rock',dist:'1.8-4 mi',effort:'Moderate',note:'Good forest mission with lake payoff.'}],
+    reminders:['Tomorrow is 4th of July — Jackson rodeo + fireworks. Plan ahead.','Tram tickets may need advance purchase — check jacksonhole.com.','Bring extra layers for the tram — it\'s cold at 10,450 ft even in July.'],
+  },
+  {
+    date:'2026-07-04', day:21, label:'4th of July — Jackson Hole',
+    shaka:{name:'Grand Teton National Park', url:'https://www.shakaguide.com/tours/yellowstone-teton/grand-teton-national-park-tour'},
+    from:'Teton Village', to:'Jackson Hole Still Works',
+    miles:'5', time:'10 min', nights:1,
+    camp:{name:'Jackson Hole Still Works',loc:'Jackson, WY',site:'—',checkin:'—',checkout:'—',conf:'—',type:'Hotel'},
+    fuel:[{name:'Maverik — Jackson WY',type:'ULSD',note:'1005 S US-89. Top off.'}],
+    lunch:{name:'Jackson town square',loc:'Jackson, WY',note:'Festive 4th of July vibe. Elk antler arches, outdoor eating.'},
+    stops:[{name:'Jackson town square + elk antler arches',note:'Festive 4th. Outdoor dining, street life.',priority:'alt'}],
+    hotspring:{name:'Astoria Hot Springs',loc:'~20 min south of Jackson on US-89',note:'5 pools including dedicated KIDS POOL. Best family hot spring near Jackson. Check astoriahotspringspark.org.'},
+    grocery:null,
+    hikes:[{name:'Aerial Tram to summit (if not done)',dist:'1-3 mi',effort:'Moderate',note:'⭐ Now or never. Take the tram from Teton Village.'}],
+    reminders:['🎆 JACKSON 4TH OF JULY: Rodeo at 8pm + fireworks over Snow King Mountain. One of the best small-town 4th of July celebrations in the country. Don\'t miss it. Talia will remember this.'],
+  },
+  {
+    date:'2026-07-05', day:22, label:'Jackson → Gros Ventre Camp',
+    from:'Jackson Hole Still Works', to:'Gros Ventre Campground',
+    miles:'25', time:'35-50 min', nights:1,
+    camp:{name:'Gros Ventre Campground',loc:'Jackson, WY',site:'—',checkin:'—',checkout:'—',conf:'—',type:'NPS'},
+    fuel:[{name:'Maverik — Jackson WY',type:'ULSD',note:'1005 S US-89. Last good fill before Jerome.'}],
+    lunch:{name:'Jackson or Jenny Lake area',loc:'Jackson / Grand Teton',note:'Get lunch before heading to Gros Ventre.'},
+    stops:[],
+    hotspring:{name:'Kelly Warm Springs',loc:'Gros Ventre Rd, near camp',note:'⭐⭐ FREE. RIGHT AT CAMP. Warm (not hot), shallow enough for Talia. She can wade and float. Moose spotted in willows nearby. Just show up.'},
+    grocery:null,
+    hikes:[{name:'Jenny Lake boat + Inspiration Point + Hidden Falls',dist:'~2 mi RT with shuttle',effort:'Moderate',note:'⭐ ARRIVE JENNY LAKE BY 8AM. Jul 5 is a Saturday after 4th weekend — it gets extremely busy. Boat shuttle + roaring waterfall + granite scramble = perfect Talia adventure.'},
+           {name:'Slide Lake',dist:'Short walks from pullouts',effort:'Easy',note:'Different feel from main park. Landslide-dammed lake, quiet.'},
+           {name:'Kelly Warm Springs evening soak',dist:'0 mi',effort:'None',note:'⭐⭐ This is the hidden gem of the whole Teton stay. Just walk from camp.'}],
+    reminders:['Jenny Lake boat: arrive by 8am. It will be busy post-4th.','Kelly Warm Springs is literally at your camp — do it!'],
+  },
+  {
+    date:'2026-07-06', day:23, label:'Gros Ventre → Jerome, ID',
+    from:'Gros Ventre Camp, Jackson', to:'Mendoza Ranchette, Jerome ID',
+    miles:'257', time:'4.5–5 hrs', nights:1,
+    camp:{name:'Mendoza Ranchette',loc:'Jerome, ID',site:'—',checkin:'—',checkout:'—',conf:'—',type:'HipCamp'},
+    fuel:[{name:'Maverik — Jackson WY',type:'ULSD',note:'Last fill in Jackson before the Idaho stretch.'},
+          {name:'Idaho Falls — Pilot Flying J',type:'ULSD',note:'Multiple locations. Good mid-drive fill.'},
+          {name:'Flying J — Jerome ID',type:'ULSD',note:'5350 US-93, I-84 Exit 173. Fill up here for tomorrow\'s long drive.'}],
+    lunch:{name:'Idaho Falls downtown',loc:'Idaho Falls, ID',note:'Snake River falls in the city. Good riverwalk + lunch. Surprising and pretty.'},
+    stops:[{name:'Palisades Reservoir — Swan Valley',note:'⭐ Deep blue reservoir on Hwy 26. First "Idaho is beautiful" moment. 45 min from Jackson.',priority:'top'},
+           {name:'Shoshone Ice Cave',note:'Ice cave in summer! Stays below freezing year-round. Guided tours. Talia loves this one.',priority:'alt'}],
+    hotspring:null, grocery:null,
+    hikes:[{name:'Perrine Bridge + canyon rim',dist:'Short walk',effort:'Easy',note:'⭐ At camp. 486-ft Snake River Canyon. Dramatic. BASE JUMPERS launch from here.'}],
+    reminders:['⚠️ TOMORROW: 370-mile drive to Mitchell OR. Fuel strategy critical.','Fill up completely at Flying J Jerome tonight.','REMINDER: Fill again at Boise + Ontario OR before the eastern Oregon desert.'],
+  },
+  {
+    date:'2026-07-07', day:24, label:'Jerome → Mitchell OR (Painted Hills) — LONG DAY',
+    from:'Jerome, ID', to:'Back Side of Painted Hills, Mitchell OR',
+    miles:'370', time:'6–7 hrs — START EARLY', nights:1,
+    camp:{name:'Back Side of Painted Hills Camping',loc:'Mitchell, OR',site:'—',checkin:'—',checkout:'—',conf:'—',type:'Private'},
+    fuel:[{name:'⭐ Boise — Pilot Flying J',type:'ULSD',note:'3353 Federal Way. FILL UP HERE. Last major truck stop before eastern Oregon desert.'},
+          {name:'⭐ Ontario OR — Shell/Chevron',type:'ULSD',note:'Oregon border on I-84. FILL UP HERE before US-20 west into the desert.'},
+          {name:'⭐ Burns/Hines — Sinclair Truck Stop',type:'ULSD',note:'740 Hwy 20 S, Hines OR. FILL UP HERE. ~130 mi from Ontario. Next diesel is John Day.'},
+          {name:'⭐ John Day — Sinclair',type:'ULSD',note:'801 US-26. FILL UP HERE. Mitchell is 75 miles east and has only a small mom-and-pop station with uncertain hours.'}],
+    lunch:{name:'Boise — Basque Block',loc:'Boise, ID',note:'Oldest Basque community in the US. Excellent food. Also Hyde Park has outdoor dining.'},
+    stops:[{name:'Bruneau Dunes State Park',note:'⭐⭐ 65 mi west of Filer on Hwy 78/51. North America\'s tallest single sand dunes. KIDS CAN CLIMB AND SLED DOWN. This might be Talia\'s highlight of the whole return leg.',priority:'top'},
+           {name:'Boise lunch stop',note:'Basque Block or Hyde Park. Good city break.',priority:'alt'}],
+    hotspring:null,
+    grocery:{name:'⭐ Boise — Costco + TJ\'s + WF',note:'Costco: 3925 E Overland Rd. TJ\'s: 300 S Capitol Blvd. WF: 401 S Broadway. Last big resupply before rural Oregon.'},
+    hikes:[{name:'Painted Cove boardwalk + Leaf Hill',dist:'~0.5 mi',effort:'Easy',note:'⭐ Best combo at Painted Hills. Strange colors, boardwalk, strong payoff.'},
+           {name:'Carroll Rim Trail',dist:'~1.6 mi RT',effort:'Moderate',note:'Panoramic overlook. Add on if energy allows.'},
+           {name:'🌌 STARGAZING tonight',dist:'—',effort:'—',note:'⭐ Painted Hills is one of the darkest sky areas in the US. This is the night for real stargazing. Lay out a blanket.'}],
+    reminders:['⚠️ LONG DAY. 370 miles. Leave by 7am.','⚠️ CRITICAL FUEL STOPS: Boise → Ontario OR → Burns/Hines → John Day → Mitchell. Do NOT skip any of these.','Mitchell has ONE small gas station with uncertain hours. Do NOT arrive on an empty tank.'],
+  },
+  {
+    date:'2026-07-08', day:25, label:'Mitchell → Yachats, Oregon Coast',
+    from:'Painted Hills, Mitchell OR', to:'Tillicum Beach Park, Yachats OR',
+    miles:'264', time:'4.5–5.5 hrs', nights:1,
+    camp:{name:'Tillicum Beach Campground',loc:'Yachats, OR',site:'—',checkin:'—',checkout:'—',conf:'—',type:'State Park'},
+    fuel:[{name:'Prineville — local stations',type:'ULSD',note:'First stop leaving Painted Hills. Top off.'},
+          {name:'Sisters — local stations',type:'ULSD',note:'Last services before McKenzie Pass.'},
+          {name:'Florence — local stations',type:'ULSD',note:'Fill up before reaching Yachats (no reliable diesel in Yachats).'}],
+    lunch:{name:'Sisters coffee + Yachats — Ona Restaurant',loc:'Sisters, OR then Yachats',note:'Sisters for coffee/pastry. Yachats (Ona Restaurant) for lunch on arrival — excellent coastal dining.'},
+    stops:[{name:'Dee Wright Observatory — McKenzie Pass lava fields',note:'⭐ Hwy 242 (check road conditions). Lava field that looks like another planet. Stone observatory with labeled peaks. Surreal.',priority:'top'},
+           {name:'Sahalie + Koosah Falls — McKenzie River',note:'⭐ 1 mi combined loop on Hwy 126. Two powerful waterfalls in old-growth. Perfect drive break.',priority:'top'},
+           {name:'Strawberry Hill tide pools',note:'⭐ A few miles south of Yachats on Hwy 101. CHECK TIDE CHART for low tide. Sea stars, anemones, hermit crabs. Top Talia stop.',priority:'top'}],
+    hotspring:null, grocery:null,
+    hikes:[{name:'Yachats 804 Trail coastal walk',dist:'~1 mi',effort:'Easy',note:'Rocky basalt shoreline through town. Tide pools, waves. Beautiful.'},
+           {name:'Cape Perpetua — Thor\'s Well',dist:'~0.5 mi',effort:'Easy',note:'Seawater shoots through a rock blowhole. Very dramatic with swell.'},
+           {name:'Strawberry Hill tide pools',dist:'~0.3 mi',effort:'Easy',note:'⭐ Check tide chart! Best at low tide. Talia pick.'}],
+    reminders:['⚠️ Fill up in Florence — Yachats has very limited/no reliable diesel.','Check tide chart for Strawberry Hill: tidechart.org → search Yachats OR → look for low tide around your arrival time.'],
+  },
+  {
+    date:'2026-07-09', day:26, label:'Yachats → Corvallis (Family Stay)',
+    from:'Yachats, OR', to:'Corvallis, OR',
+    miles:'72', time:'~1.5 hrs', nights:2,
+    camp:{name:'Corvallis family home',loc:'Corvallis, OR',site:'Guest',checkin:'—',checkout:'—',conf:'—',type:'Family'},
+    fuel:[{name:'Newport / Lincoln City stations',type:'ULSD',note:'Multiple options on US-101 heading north.'}],
+    lunch:{name:'Sea Lion Caves area / Newport',loc:'Sea Lion Caves, OR (12 mi north of Florence)',note:'Sea lions first, then lunch in Newport on the drive north.'},
+    stops:[{name:'Sea Lion Caves',note:'⭐⭐ TALIA\'S DAY. World\'s largest sea cave. Elevator into the rock. Wild Steller sea lions year-round. Loud, smelly, UNFORGETTABLE. She will tell people about this for years.',priority:'top'},
+           {name:'Heceta Head Lighthouse',note:'Right after Sea Lion Caves. 10-minute stop. Classic coastal image.',priority:'alt'},
+           {name:'Cape Perpetua (if not done)',note:'22 mi north of Florence. Thor\'s Well.',priority:'alt'}],
+    hotspring:null,
+    grocery:{name:'TJ\'s Corvallis + Eugene options',note:'TJ\'s Corvallis: 1550 NW 9th St. Also TJ\'s + WF in Eugene on the way.'},
+    hikes:[],
+    reminders:['Rest days in Corvallis. Good time for laundry.','TJ\'s Corvallis is the best resupply opportunity on the whole return leg — 2 nights here.'],
+  },
+  {
+    date:'2026-07-10', day:27, label:'Corvallis Rest Day',
+    from:'Corvallis family home', to:'Corvallis family home',
+    miles:'0', time:'Stay', nights:0,
+    camp:{name:'Corvallis family home',loc:'Corvallis, OR',site:'Guest',checkin:'—',checkout:'—',conf:'—',type:'Family'},
+    fuel:[], lunch:{name:'Corvallis local options',loc:'Corvallis, OR',note:'College town, good restaurants and cafes.'},
+    stops:[], hotspring:null,
+    grocery:{name:'TJ\'s Corvallis',note:'1550 NW 9th St — do the big stock-up today.'},
+    hikes:[{name:'Mary\'s Peak day hike (optional)',dist:'~5 mi RT',effort:'Moderate',note:'Highest peak in the Oregon Coast Range. Great wildflowers in July.'}],
+    reminders:['Laundry day!','Big grocery run at TJ\'s Corvallis — stock up well for the final home run.'],
+  },
+  {
+    date:'2026-07-11', day:28, label:'Corvallis → Dunsmuir CA',
+    from:'Corvallis, OR', to:'Jubilee Railroad Wilderness Lodge, Dunsmuir CA',
+    miles:'306', time:'5.5–6 hrs', nights:1,
+    camp:{name:'Jubilee Railroad Wilderness Lodge',loc:'Dunsmuir, CA',site:'—',checkin:'—',checkout:'—',conf:'—',type:'Private Lodge'},
+    fuel:[{name:'Love\'s — Albany OR',type:'ULSD',note:'6457 Old Salem Rd NE. On I-5, 8 diesel lanes, 24/7.'},
+          {name:'76 — Medford OR',type:'R99',note:'R99 renewable diesel likely. Near Ashland/Jacksonville stop.'},
+          {name:'Mt. Shasta / Weed CA',type:'R99',note:'76 stations on I-5 likely carry R99.'}],
+    lunch:{name:'Ashland — Lithia Park',loc:'Ashland, OR',note:'⭐ Beautiful city with creek through the park. Shakespeare Festival energy. One of the best I-5 lunch stops in the Northwest.'},
+    stops:[{name:'Ashland + Lithia Park',note:'⭐ Park walk + great restaurants. 45-60 min. Plan for it.',priority:'top'},
+           {name:'Jacksonville gold rush town',note:'5 mi off I-5 near Medford. Best-preserved gold rush town in Oregon. Ice cream + wandering.',priority:'alt'}],
+    hotspring:null, grocery:null,
+    hikes:[],
+    reminders:[],
+  },
+  {
+    date:'2026-07-12', day:29, label:'Dunsmuir → Home!',
+    from:'Jubilee Railroad Lodge, Dunsmuir CA', to:'Fairfax, CA — HOME',
+    miles:'265', time:'4.5–5 hrs', nights:0,
+    camp:{name:'Home',loc:'Fairfax, CA',site:'—',checkin:'—',checkout:'—',conf:'—',type:'Home'},
+    fuel:[{name:'76 — Redding / Mt. Shasta',type:'R99',note:'R99 on the final run home. Finish the trip on the best fuel.'}],
+    lunch:{name:'Sundial Bridge + Redding',loc:'Redding, CA',note:'Calatrava bridge over Sacramento River. Walk, ice cream, last road trip stop.'},
+    stops:[{name:'McCloud River Falls — Lower + Middle',note:'⭐⭐ THE PERFECT ENDING. Take Hwy 89 east from McCloud. Two falls, 2 mi easy. Middle Falls is SWIMMABLE in July. Swim under a waterfall on the last morning. Then go home.',priority:'top'},
+           {name:'Sundial Bridge — Redding',note:'Santiago Calatrava glass pedestrian bridge. Free, beautiful, 20-30 min. Good ice cream spot.',priority:'alt'},
+           {name:'Shasta Lake viewpoint',note:'On I-5 — good visual "we\'re almost home" marker.',priority:'alt'}],
+    hotspring:null, grocery:null,
+    hikes:[{name:'McCloud River Falls — Lower + Middle',dist:'~2 mi RT',effort:'Easy',note:'⭐⭐ End the trip RIGHT. Swim under Middle Falls. This is the ending this trip deserves.'}],
+    reminders:['Welcome home! 29 days, ~4,200 miles.'],
+  },
+];
+
+// ═══════════════════════════════════════════════════════════
+// QUICK REFERENCE DATA
+// ═══════════════════════════════════════════════════════════
+const FUEL_REF = [
+  {state:'California',name:'76 — Petaluma',type:'R99',addr:'US-101, Petaluma CA',note:'Confirmed R99. Best RD near Fairfax. Pre-trip fill.'},
+  {state:'California',name:'Lee Vining Chevron',type:'ULSD',addr:'51557 US-395, Lee Vining CA',note:'Reliable US-395 stop.'},
+  {state:'California',name:'Bridgeport Shell/Gas',type:'ULSD',addr:'Bridgeport, CA',note:'US-395 north of June Lake.'},
+  {state:'California',name:'Redding — multiple',type:'ULSD',addr:'I-5, Redding CA',note:'Chevron/Shell/76 on I-5.'},
+  {state:'California',name:'Mt. Shasta 76',type:'R99',addr:'I-5, Mt. Shasta CA',note:'Likely R99. Outbound + return.'},
+  {state:'Oregon',name:'Love\'s — Klamath Falls',type:'ULSD',addr:'250 Dab O Brien Way, Klamath Falls OR',note:'⭐ 7 diesel lanes, 24/7.'},
+  {state:'Oregon',name:'Love\'s — Madras',type:'ULSD',addr:'1678 SE US-97, Madras OR',note:'⭐ On route US-97.'},
+  {state:'Oregon',name:'Love\'s — Boardman',type:'ULSD',addr:'I-84 Exit 159, Boardman OR',note:'⭐ 8 diesel lanes, 24/7.'},
+  {state:'Oregon',name:'⚠️ Ontario — Fill Up',type:'ULSD',addr:'I-84/US-20 junction, Ontario OR',note:'⚠️ CRITICAL. Last reliable diesel before ~220 miles of desert.'},
+  {state:'Oregon',name:'⚠️ Burns/Hines Sinclair',type:'ULSD',addr:'740 Hwy 20 S, Hines OR',note:'⚠️ CRITICAL. Only truck stop between Ontario and John Day.'},
+  {state:'Oregon',name:'⚠️ John Day Sinclair',type:'ULSD',addr:'801 US-26, John Day OR',note:'⚠️ CRITICAL. Fill here before Mitchell (75 mi). Mitchell has uncertain small station.'},
+  {state:'Oregon',name:'Love\'s — Albany',type:'ULSD',addr:'6457 Old Salem Rd NE, Albany OR',note:'Return leg. 8 diesel lanes, 24/7.'},
+  {state:'Washington',name:'Costco — Spokane',type:'ULSD',addr:'5601 E Sprague Ave, Spokane WA',note:'Near Cheney camp. Good fill-up.'},
+  {state:'Idaho',name:'Pilot Flying J — Boise',type:'ULSD',addr:'3353 Federal Way, Boise ID',note:'⭐ Fill before eastern Oregon desert.'},
+  {state:'Idaho',name:'Flying J — Jerome',type:'ULSD',addr:'5350 US-93, Jerome ID (I-84 Exit 173)',note:'⭐ 24/7, rated 4.4/5. Fill the night before the long Jerome→Mitchell drive.'},
+  {state:'Idaho',name:'Pilot Flying J — Idaho Falls',type:'ULSD',addr:'2495 E Lincoln Rd, Idaho Falls ID',note:'On Jackson→Jerome route.'},
+  {state:'Montana',name:'⭐ Pilot Flying J — Columbia Falls',type:'ULSD',addr:'6102 US-2, Columbia Falls MT',note:'⭐ CRITICAL. Last major truck stop before Glacier corridor.'},
+  {state:'Montana',name:'Browning — Exxon',type:'ULSD',addr:'304 SE Boundary St, Browning MT',note:'Key east-side Glacier diesel. Fill before/after Grinnell.'},
+  {state:'Montana',name:'Missoula — TA Travel Center',type:'ULSD',addr:'I-90 Exit 96, Missoula MT',note:'On Glacier→Yellowstone drive day.'},
+  {state:'Montana',name:'Gardiner MT — gateway',type:'ULSD',addr:'Gardiner, MT',note:'Last fill before Yellowstone. Cheaper than inside.'},
+  {state:'Wyoming',name:'Maverik — Jackson WY',type:'ULSD',addr:'1005 S US-89, Jackson WY',note:'⭐ Best diesel in Jackson. Fill for all Teton days.'},
+  {state:'Wyoming',name:'Canyon — YPSS Sinclair',type:'ULSD',addr:'Canyon Village, Yellowstone NP',note:'24/7 credit card. Inside park — premium price.'},
+  {state:'Wyoming',name:'Madison — YPSS Sinclair',type:'ULSD',addr:'Madison Junction, Yellowstone NP',note:'24/7 credit card.'},
+  {state:'Wyoming',name:'Grant Village — YPSS Sinclair',type:'ULSD',addr:'Grant Village, Yellowstone NP',note:'24/7 credit card.'},
+];
+
+const GROCERY_REF = [
+  {name:'Costco — San Rafael CA',type:'Costco',addr:'150 Shoreline Pkwy, San Rafael CA',note:'Pre-trip stock-up. ~15 min from Fairfax.'},
+  {name:'TJ\'s — San Rafael CA',type:'TJ',addr:'717 Third St, San Rafael CA',note:'Pre-trip fresh food.'},
+  {name:'Costco — Redding CA',type:'Costco',addr:'1000 Dana Dr, Redding CA',note:'Outbound + return on I-5.'},
+  {name:'Costco — Bend OR',type:'Costco',addr:'US-97, Bend OR',note:'Jun 21 leg.'},
+  {name:'TJ\'s — Bend OR',type:'TJ',addr:'63455 N Hwy 97, Bend OR',note:'8am–9pm.'},
+  {name:'Whole Foods — Bend OR',type:'WF',addr:'2610 NE Hwy 20, Bend OR',note:'8am–9pm.'},
+  {name:'TJ\'s — Spokane WA',type:'TJ',addr:'2975 E 29th Ave, Spokane WA',note:'Near Cheney. Last TJ\'s before Montana.'},
+  {name:'⭐ Costco — Kalispell MT',type:'Costco',addr:'2330 US-93 N, Kalispell MT',note:'⭐ KEY STOP. Stock up before Glacier. Last Costco for 500+ miles.'},
+  {name:'Natural Grocers — Kalispell MT',type:'Natural',addr:'2395 US-93 N, Kalispell MT',note:'Next to Costco. Best organic in Glacier corridor.'},
+  {name:'Costco — Missoula MT',type:'Costco',addr:'3220 N Reserve St, Missoula MT',note:'On Glacier→Yellowstone drive day.'},
+  {name:'Good Food Store — Missoula MT',type:'Natural',addr:'1600 S 3rd St W, Missoula MT',note:'⭐ Excellent co-op. Pair with Missoula lunch stop.'},
+  {name:'Natural Grocers — Jackson WY',type:'Natural',addr:'Jackson, WY',note:'No Costco/TJ/WF in Jackson. This is the best option.'},
+  {name:'Costco — Idaho Falls ID',type:'Costco',addr:'2495 E Lincoln Rd, Idaho Falls ID',note:'Jackson→Jerome leg.'},
+  {name:'Flying J — Jerome ID',type:'Other',addr:'5350 US-93, Jerome ID',note:'Truck stop c-store. Basic resupply if needed.'},
+  {name:'⭐ Costco — Boise ID',type:'Costco',addr:'3925 E Overland Rd, Boise ID',note:'⭐ Last big resupply before eastern Oregon desert.'},
+  {name:'TJ\'s — Boise ID',type:'TJ',addr:'300 S Capitol Blvd, Boise ID',note:'Good fresh food before the desert stretch.'},
+  {name:'Whole Foods — Boise ID',type:'WF',addr:'401 S Broadway Ave, Boise ID',note:'8am–9pm.'},
+  {name:'TJ\'s — Eugene OR',type:'TJ',addr:'85 Oakway Center, Eugene OR',note:'Mitchell→Yachats or Yachats→Corvallis leg.'},
+  {name:'Whole Foods — Eugene OR',type:'WF',addr:'353 E Broadway, Eugene OR',note:''},
+  {name:'⭐ TJ\'s — Corvallis OR',type:'TJ',addr:'1550 NW 9th St, Corvallis OR',note:'⭐ Right in town for the 2-night family stay. Best resupply window.'},
+  {name:'TJ\'s — Medford OR',type:'TJ',addr:'Medford, OR',note:'Return leg near Ashland.'},
+  {name:'Love\'s — Albany OR',type:'Other',addr:'6457 Old Salem Rd NE, Albany OR',note:'Truck stop. Good stop on return.'},
+];
+
+const HOTSPRING_REF = [
+  {name:'Travertine Hot Springs',loc:'Bridgeport, CA',leg:'Jun 17 — June Lake→Doyle',status:'open',note:'⭐ Free. BLM-managed. 5-6 pools. ~2 mi dirt road off US-395. Mountain views. Talia-friendly. Do it!'},
+  {name:'Chico Hot Springs',loc:'Pray, MT (Paradise Valley)',leg:'Jun 29 — Glacier→Yellowstone drive',status:'open',note:'On US-89 between Livingston and Gardiner — literally on route! Historic resort, day use available. Great mid-drive soak. chicohotsprings.com'},
+  {name:'Kelly Warm Springs',loc:'Gros Ventre Rd, near camp',leg:'Jul 5-6 — At Gros Ventre Camp',status:'open',note:'⭐⭐ FREE. At your campsite. Warm (not hot), shallow for kids. Moose in nearby willows. Talia\'s favorite. Just walk there.'},
+  {name:'Astoria Hot Springs',loc:'~20 min south of Jackson WY',leg:'Jul 3-6 — Teton days',status:'open',note:'⭐ Dedicated KIDS POOL. 5 pools total. Most family-friendly in the region. astoriahotspringspark.org'},
+  {name:'Quinn\'s Hot Springs',loc:'Paradise, MT',leg:'Jun 23 — Cheney→Big Arm (detour)',status:'open',note:'30-40 min detour via Hwy 200. Resort with pools, restaurant. Worth it if timing works. quinnshotsprings.com'},
+  {name:'Crystal Crane Hot Springs',loc:'Near Burns, OR',leg:'Jul 7 — Jerome→Mitchell (detour)',status:'open',note:'25 mi SE of Burns on Hwy 78. Has camping, pet-friendly, fee-based. Worth it if not already running late.'},
+  {name:'Boiling River — Yellowstone',loc:'Near Gardiner MT / Mammoth',leg:'Yellowstone days',status:'CLOSED',note:'⚠️ CURRENTLY CLOSED. No safe or legal access as of 2025-2026. Do not attempt.'},
+  {name:'Cougar / Terwilliger Springs',loc:'McKenzie River, OR',leg:'Jul 8 — Mitchell→Yachats',status:'skip',note:'On route but CLOTHING OPTIONAL. Skip with kids.'},
+];
+
+// ═══════════════════════════════════════════════════════════
+// APP LOGIC
+// ═══════════════════════════════════════════════════════════
+
+let currentDayIdx = 0;
+let mapInit = false;
+
+function getTodayIdx() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const start = new Date(TRIP_START); start.setHours(0,0,0,0);
+  const end = new Date(TRIP_END); end.setHours(0,0,0,0);
+  if (today < start) return -1;
+  if (today > end) return -2;
+  for (let i = 0; i < DAYS.length; i++) {
+    const d = new Date(DAYS[i].date); d.setHours(0,0,0,0);
+    if (d.getTime() === today.getTime()) return i;
+  }
+  // find nearest
+  for (let i = 0; i < DAYS.length - 1; i++) {
+    const a = new Date(DAYS[i].date), b = new Date(DAYS[i+1].date);
+    if (today >= a && today < b) return i;
+  }
+  return DAYS.length - 1;
+}
+
+function daysUntilTrip() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const start = new Date(TRIP_START); start.setHours(0,0,0,0);
+  return Math.round((start - today) / 86400000);
+}
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+}
+
+// Location themes: [gradient, text color, emoji]
+const THEMES = {
+  'June Lake':      ['linear-gradient(135deg,#78350f,#92400e,#c2410c)','#fff','🏔️'],
+  'Doyle':          ['linear-gradient(135deg,#1c1917,#292524,#44403c)','#d6d3d1','🌵'],
+  'Lassen':         ['linear-gradient(135deg,#7f1d1d,#b45309,#78350f)','#fff','🌋'],
+  'Crater Lake':    ['linear-gradient(135deg,#1e3a8a,#1d4ed8,#312e81)','#bfdbfe','💧'],
+  'Terrebonne':     ['linear-gradient(135deg,#14532d,#166534,#15803d)','#bbf7d0','🪨'],
+  'Cheney':         ['linear-gradient(135deg,#1e3a5f,#1e40af,#374151)','#bfdbfe','🌾'],
+  'Big Arm':        ['linear-gradient(135deg,#0c4a6e,#0369a1,#164e63)','#bae6fd','🏞️'],
+  'Fish Creek':     ['linear-gradient(135deg,#0e7490,#0284c7,#164e63)','#bae6fd','🌲'],
+  'West Glacier':   ['linear-gradient(135deg,#0e7490,#0284c7,#164e63)','#bae6fd','🌲'],
+  'Babb':           ['linear-gradient(135deg,#0e7490,#155e75,#0c4a6e)','#a5f3fc','⛰️'],
+  'St. Mary':       ['linear-gradient(135deg,#0e7490,#0891b2,#0c4a6e)','#a5f3fc','🏔️'],
+  'Canyon':         ['linear-gradient(135deg,#78350f,#d97706,#b45309)','#fef3c7','♨️'],
+  'Madison':        ['linear-gradient(135deg,#78350f,#d97706,#92400e)','#fde68a','🌋'],
+  'Grant Village':  ['linear-gradient(135deg,#78350f,#d97706,#15803d)','#fde68a','🌊'],
+  'Colter Bay':     ['linear-gradient(135deg,#1e293b,#374151,#4b5563)','#e2e8f0','⛰️'],
+  'Teton Village':  ['linear-gradient(135deg,#1e293b,#374151,#1e3a5f)','#e2e8f0','🚡'],
+  'Jackson Hole':   ['linear-gradient(135deg,#3b1f0f,#78350f,#92400e)','#fed7aa','🎆'],
+  'Jackson':        ['linear-gradient(135deg,#3b1f0f,#78350f,#15803d)','#fed7aa','🫎'],
+  'Gros Ventre':    ['linear-gradient(135deg,#14532d,#166534,#3b1f0f)','#bbf7d0','♨️'],
+  'Jerome':         ['linear-gradient(135deg,#1e3a5f,#1e40af,#78350f)','#bfdbfe','🌉'],
+  'Mitchell':       ['linear-gradient(135deg,#7f1d1d,#b45309,#78350f)','#fde68a','🎨'],
+  'Yachats':        ['linear-gradient(135deg,#0e4f5e,#0891b2,#0e7490)','#a5f3fc','🦭'],
+  'Corvallis':      ['linear-gradient(135deg,#14532d,#166534,#065f46)','#bbf7d0','🌲'],
+  'Dunsmuir':       ['linear-gradient(135deg,#14532d,#166534,#1e293b)','#bbf7d0','💧'],
+  'Home':           ['linear-gradient(135deg,#1e3a5f,#1e40af,#14532d)','#bfdbfe','🏠'],
+};
+
+function getTheme(d) {
+  for (const [k,v] of Object.entries(THEMES)) {
+    if (d.to.includes(k) || d.from.includes(k) || d.label.includes(k)) return v;
+  }
+  return ['linear-gradient(135deg,#1e293b,#334155)','#e2e8f0','🚐'];
+}
+
+function fuelBadge(type) {
+  if (type === 'R99') return '<span class="pill pill-green">♻️ R99</span>';
+  if (type === 'ULSD') return '<span class="pill pill-blue">⛽ ULSD</span>';
+  return '<span class="pill pill-amber">⚠️</span>';
+}
+
+function updateProgress(idx) {
+  const todayIdx = getTodayIdx();
+  const pct = todayIdx < 0 ? 0 : Math.min(100, Math.round((todayIdx / 28) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = todayIdx < 0 ? '0 / 29' : `${todayIdx + 1} / 29`;
+}
+
+function renderToday() {
+  const pane = document.getElementById('pane-today');
+  const d = DAYS[currentDayIdx];
+  const todayIdx = getTodayIdx();
+  const isDriveDay = d.miles !== '0';
+  const [grad, textCol, emoji] = getTheme(d);
+
+  // Header subtitle
+  if (todayIdx === -1) {
+    document.getElementById('header-sub').textContent = `Starts in ${daysUntilTrip()} days · Jun 14`;
+  } else if (todayIdx === -2) {
+    document.getElementById('header-sub').textContent = 'Trip complete! 🎉';
+  } else {
+    document.getElementById('header-sub').textContent = `Day ${todayIdx + 1} of 29 · ${formatDate(DAYS[todayIdx].date)}`;
+  }
+  updateProgress();
+
+  let html = '';
+
+  // Pre-trip countdown
+  if (todayIdx === -1 && currentDayIdx === 0) {
+    html += `<div class="countdown-screen">
+      <div class="countdown-num">${daysUntilTrip()}</div>
+      <div class="countdown-label">days until departure</div>
+      <div class="countdown-sub">Jun 14, 2026 · Fairfax → June Lake</div>
+    </div>`;
+  }
+
+  // Day navigator
+  html += `<div class="day-nav">
+    <button class="day-nav-btn" onclick="prevDay()">← Prev</button>
+    <div class="day-nav-center">
+      <div class="day-nav-date">${formatDate(d.date)}</div>
+      <div class="day-nav-num">Day ${d.day} of 29</div>
+    </div>
+    <button class="day-nav-btn" onclick="nextDay()">Next →</button>
+  </div>`;
+
+  // Hero banner
+  html += `<div class="hero-banner">
+    <div class="hero-gradient" style="background:${grad}">
+      <div class="hero-content">
+        <div class="hero-emoji">${emoji}</div>
+        <div class="hero-label" style="color:${textCol}">Day ${d.day} · ${isDriveDay ? 'Drive Day' : 'Rest Day'}</div>
+        <div class="hero-title" style="color:${textCol}">${d.label}</div>
+        <div class="hero-leg" style="color:${textCol}">${d.from} → ${d.to}</div>
+        <div class="hero-stats-row">
+          ${isDriveDay ? `<div class="hero-stat"><div class="hero-stat-val" style="color:${textCol}">${d.miles}</div><div class="hero-stat-lbl" style="color:${textCol}">miles</div></div>
+          <div class="hero-stat"><div class="hero-stat-val" style="color:${textCol}">${d.time}</div><div class="hero-stat-lbl" style="color:${textCol}">drive</div></div>` :
+          `<div class="hero-stat"><div class="hero-stat-val" style="color:${textCol}">Rest</div><div class="hero-stat-lbl" style="color:${textCol}">day</div></div>`}
+          ${d.nights > 0 ? `<div class="hero-stat"><div class="hero-stat-val" style="color:${textCol}">${d.nights}n</div><div class="hero-stat-lbl" style="color:${textCol}">tonight</div></div>` : ''}
+          <div class="hero-stat"><div class="hero-stat-val" style="color:${textCol}">${d.camp.type === 'NPS' ? '🏕️ NPS' : d.camp.type === 'HipCamp' ? '🦙 Hip' : d.camp.type === 'Hotel' || d.camp.type === 'Hotel/Lodge' ? '🏨 Hotel' : d.camp.type === 'Family' ? '🏡 Fam' : '⛺ Camp'}</div><div class="hero-stat-lbl" style="color:${textCol}">stay type</div></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // Shaka Guide button
+  if (d.shaka) {
+    html += `<a href="${d.shaka.url}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1a0d3d,#0d1e3d);border:1px solid #3b1f8a;border-radius:12px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:var(--text);">
+      <span style="font-size:1.5rem">🎧</span>
+      <div style="flex:1">
+        <div style="font-size:0.8rem;font-weight:800;color:#c4b5fd;">Shaka Guide Audio Tour</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">${d.shaka.name} · Tap to open</div>
+      </div>
+      <span style="font-size:0.8rem;color:#c4b5fd;">→</span>
+    </a>`;
+  }
+
+  // Reminders
+  d.reminders.forEach(r => {
+    html += `<div class="warn-banner"><div class="icon">⚠️</div><div class="warn-text">${r}</div></div>`;
+  });
+
+  // Timeline
+  const hasTimeline = isDriveDay && (d.fuel.length > 0 || d.stops.length > 0 || d.grocery || d.hotspring || d.lunch);
+  if (hasTimeline) {
+    html += `<div class="timeline">`;
+    html += `<div class="timeline-section-header">Drive Plan</div>`;
+
+    // Fuel stops
+    d.fuel.forEach(f => {
+      const isWarn = f.name.startsWith('⚠️') || f.note.startsWith('⚠️');
+      html += `<div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot ${isWarn ? 'td-warn' : 'td-fuel'}">⛽</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-right ${isWarn ? 'td-warn' : 'td-fuel'}">
+          <div class="tl-name">${f.name.replace('⚠️ ','')}&nbsp;${fuelBadge(f.type)}</div>
+          <div class="tl-note">${f.note}</div>
+        </div>
+      </div>`;
+    });
+
+    // Grocery
+    if (d.grocery) {
+      html += `<div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot td-grocery">🛒</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-right td-grocery">
+          <div class="tl-name">${d.grocery.name}</div>
+          <div class="tl-note">${d.grocery.note}</div>
+        </div>
+      </div>`;
+    }
+
+    // Drive stops
+    d.stops.forEach(s => {
+      html += `<div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot td-stop">${s.priority === 'top' ? '🌟' : '📍'}</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-right td-stop">
+          <div class="tl-name">${s.name}</div>
+          <div class="tl-note">${s.note}</div>
+        </div>
+      </div>`;
+    });
+
+    // Lunch
+    if (d.lunch) {
+      html += `<div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot td-lunch">🥪</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-right td-lunch">
+          <div class="tl-name">${d.lunch.name}</div>
+          <div class="tl-note">${d.lunch.loc} — ${d.lunch.note}</div>
+        </div>
+      </div>`;
+    }
+
+    // Hot spring
+    if (d.hotspring) {
+      html += `<div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot td-spring">♨️</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-right td-spring">
+          <div class="tl-name">${d.hotspring.name}</div>
+          <div class="tl-note">${d.hotspring.loc} — ${d.hotspring.note}</div>
+        </div>
+      </div>`;
+    }
+
+    html += `</div>`; // close timeline
+  }
+
+  // Hot spring at camp (non-drive days)
+  if (!isDriveDay && d.hotspring) {
+    html += `<div class="section-label">♨️ Hot Spring Nearby</div>
+    <div class="timeline-right td-spring" style="margin-bottom:10px">
+      <div class="tl-name">${d.hotspring.name}</div>
+      <div class="tl-note">${d.hotspring.loc} — ${d.hotspring.note}</div>
+    </div>`;
+  }
+
+  // Camp card
+  if (d.camp.name !== 'Home') {
+    html += `<div class="section-label">Tonight's Stay</div>
+    <div class="camp-card">
+      <div class="camp-card-header">
+        <div class="camp-card-icon">${d.camp.type === 'NPS' ? '🏕️' : d.camp.type === 'HipCamp' ? '🦙' : d.camp.type === 'Hotel' || d.camp.type === 'Hotel/Lodge' ? '🏨' : d.camp.type === 'Family' ? '🏡' : d.camp.type === 'Harvest Host' ? '🌾' : '⛺'}</div>
+        <div>
+          <div class="camp-card-title">${d.camp.name}</div>
+          <div class="camp-card-sub">${d.camp.loc}</div>
+        </div>
+      </div>
+      <div class="camp-rows">
+        ${d.camp.site && d.camp.site !== '—' ? `<div class="camp-row"><span class="camp-label">Site</span><span class="camp-value">${d.camp.site}</span></div>` : ''}
+        ${d.camp.checkin && d.camp.checkin !== '—' ? `<div class="camp-row"><span class="camp-label">Check-in</span><span class="camp-value">${d.camp.checkin}</span></div>` : ''}
+        ${d.camp.conf && d.camp.conf !== '—' && d.camp.conf !== 'N/A' ? `<div class="camp-row"><span class="camp-label">Confirmation</span><span class="camp-value conf-num">${d.camp.conf}</span></div>` : ''}
+        <div class="camp-row"><span class="camp-label">Type</span><span class="camp-value">${d.camp.type}</span></div>
+      </div>
+    </div>`;
+  }
+
+  // Hikes
+  if (d.hikes.length > 0) {
+    html += `<div class="section-label">🥾 Hikes & Activities</div><div class="hikes-grid">`;
+    d.hikes.forEach(h => {
+      html += `<div class="hike-card">
+        <div class="hike-card-icon">🥾</div>
+        <div class="hike-card-body">
+          <div class="hike-card-name">${h.name}</div>
+          <div class="hike-card-meta">
+            ${h.dist && h.dist !== '—' ? `<span class="hike-meta-badge">${h.dist}</span>` : ''}
+            ${h.effort && h.effort !== '—' ? `<span class="hike-meta-badge">${h.effort}</span>` : ''}
+          </div>
+          <div class="hike-card-note">${h.note}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  pane.innerHTML = html;
+}
+
+function prevDay() {
+  if (currentDayIdx > 0) { currentDayIdx--; renderToday(); }
+}
+function nextDay() {
+  if (currentDayIdx < DAYS.length - 1) { currentDayIdx++; renderToday(); }
+}
+
+function renderAllDays() {
+  const pane = document.getElementById('pane-days');
+  const todayIdx = getTodayIdx();
+  const totalMiles = DAYS.reduce((sum,d) => sum + (parseInt(d.miles)||0), 0);
+  const pct = todayIdx < 0 ? 0 : Math.min(100, Math.round((todayIdx/28)*100));
+
+  let html = `<div class="trip-progress-strip">
+    <div class="tps-label">Trip Progress</div>
+    <div class="tps-bar"><div class="tps-fill" style="width:${pct}%"></div></div>
+    <div class="tps-stats">
+      <div class="tps-stat">Day <span>${todayIdx < 0 ? 0 : todayIdx + 1}</span> of 29</div>
+      <div class="tps-stat"><span>~${totalMiles.toLocaleString()}</span> total miles</div>
+      <div class="tps-stat">Jun 14 – Jul 12</div>
+    </div>
+  </div>`;
+
+  DAYS.forEach((d, i) => {
+    const isDrive = d.miles !== '0';
+    const [grad,textCol,emoji] = getTheme(d);
+    const isToday = todayIdx === i;
+    const isPast = todayIdx > i && todayIdx >= 0;
+    html += `<div class="day-card" onclick="toggleDayCard(${i})" style="${isToday ? 'border-color:#f59e0b;' : ''}">
+      <div class="day-card-strip" style="background:${grad}"></div>
+      <div class="day-card-header">
+        <div class="day-card-left" style="${isPast ? 'opacity:0.6' : ''}">
+          <div class="dc-date">${formatDate(d.date)} · Day ${d.day}${isToday ? ' <span style="color:var(--accent);font-weight:800">← TODAY</span>' : ''}</div>
+          <div class="dc-dest"><span class="day-card-emoji">${emoji}</span>${d.to.split(',')[0]}${d.nights > 0 ? ` <span style="font-size:0.7rem;color:var(--muted);font-weight:500">· ${d.nights}n</span>` : ''}</div>
+          <div class="dc-summary">${d.stops[0] ? '🌟 ' + d.stops[0].name.replace(/⭐/g,'').trim().substring(0,40) : d.hikes[0] ? '🥾 ' + d.hikes[0].name.substring(0,40) : d.label}</div>
+        </div>
+        <div class="day-card-right">
+          ${isDrive ? `<div class="dc-miles">${d.miles} mi</div><div class="dc-time">${d.time}</div>` : `<div class="dc-miles" style="color:var(--muted);font-size:0.75rem">stay</div>`}
+        </div>
+      </div>
+      <div class="day-card-detail" id="dc-${i}">
+        ${d.reminders.map(r=>`<div style="background:#2d0a0a;border:1px solid #7f1d1d;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:0.76rem;color:#fca5a5;">⚠️ ${r}</div>`).join('')}
+        ${d.fuel.length > 0 ? `<div class="detail-section"><h4>⛽ Fuel Stops</h4>${d.fuel.map(f=>`<div class="detail-row"><span class="icon">⛽</span><div class="txt">${f.name.replace('⚠️ ','')} ${fuelBadge(f.type)}<div class="sub">${f.note}</div></div></div>`).join('')}</div>` : ''}
+        ${d.stops.length > 0 ? `<div class="detail-section"><h4>🌟 Scenic Stops</h4>${d.stops.map(s=>`<div class="detail-row"><span class="icon">${s.priority==='top'?'🌟':'📍'}</span><div class="txt">${s.name}<div class="sub">${s.note.substring(0,120)}</div></div></div>`).join('')}</div>` : ''}
+        ${d.lunch ? `<div class="detail-section"><h4>🥪 Lunch</h4><div class="detail-row"><span class="icon">🥪</span><div class="txt">${d.lunch.name}<div class="sub">${d.lunch.loc}</div></div></div></div>` : ''}
+        ${d.hotspring ? `<div class="detail-section"><h4>♨️ Hot Spring</h4><div class="detail-row"><span class="icon">♨️</span><div class="txt">${d.hotspring.name}<div class="sub">${d.hotspring.note.substring(0,100)}</div></div></div></div>` : ''}
+        ${d.hikes.length > 0 ? `<div class="detail-section"><h4>🥾 Hikes</h4>${d.hikes.map(h=>`<div class="detail-row"><span class="icon">🥾</span><div class="txt"><strong>${h.name}</strong>${h.dist&&h.dist!=='—'?' · '+h.dist:''}<div class="sub">${h.note.substring(0,100)}</div></div></div>`).join('')}</div>` : ''}
+        <div style="margin-top:10px;background:#0a2d14;border:1px solid #166534;border-radius:10px;padding:10px 12px;">
+          <div style="font-size:0.78rem;font-weight:800;color:#86efac;">${d.camp.type==='NPS'?'🏕️':d.camp.type==='HipCamp'?'🦙':d.camp.type==='Hotel'||d.camp.type==='Hotel/Lodge'?'🏨':'⛺'} ${d.camp.name}</div>
+          <div style="font-size:0.7rem;color:#4ade80;margin-top:3px;">${d.camp.loc}${d.camp.site&&d.camp.site!=='—'?' · Site '+d.camp.site:''}${d.camp.conf&&d.camp.conf!=='—'&&d.camp.conf!=='N/A'?' · <span style="color:var(--accent);">#'+d.camp.conf+'</span>':''}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+  pane.innerHTML = html;
+}
+
+function toggleDayCard(i) {
+  const el = document.getElementById(`dc-${i}`);
+  if (el) el.classList.toggle('open');
+}
+
+function renderRef() {
+  const pane = document.getElementById('pane-ref');
+  const states = [...new Set(FUEL_REF.map(f=>f.state))];
+
+  let html = '';
+
+  // Hot springs first
+  html += `<div class="ref-section"><h3>♨️ Hot Springs</h3>`;
+  HOTSPRING_REF.forEach(h => {
+    const closed = h.status === 'CLOSED' || h.status === 'skip';
+    html += `<div class="ref-item" style="${closed?'opacity:0.5':''}">
+      <div class="ref-name">${closed?'❌ ':'⭐ '}${h.name}</div>
+      <div class="ref-addr">${h.loc} · ${h.leg}</div>
+      <div class="ref-addr">${h.note}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Fuel by state
+  html += `<div class="ref-section"><h3>⛽ Fuel by State</h3>`;
+  states.forEach(state => {
+    html += `<div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin:10px 0 5px;">${state}</div>`;
+    FUEL_REF.filter(f=>f.state===state).forEach(f => {
+      html += `<div class="ref-item">
+        <div class="ref-name">${f.name} ${fuelBadge(f.type)}</div>
+        <div class="ref-addr">${f.addr}</div>
+        <div class="ref-addr">${f.note}</div>
+      </div>`;
+    });
+  });
+  html += '</div>';
+
+  // Groceries
+  html += `<div class="ref-section"><h3>🛒 Grocery Stops</h3>`;
+  GROCERY_REF.forEach(g => {
+    const typeColor = g.type==='Costco'?'pill-blue':g.type==='TJ'?'pill-amber':g.type==='WF'?'pill-green':'pill-purple';
+    html += `<div class="ref-item">
+      <div class="ref-name">${g.name} <span class="pill ${typeColor}">${g.type==='TJ'?'TJ\'s':g.type==='WF'?'WF':g.type==='Natural'?'🌿 Natural':g.type}</span></div>
+      <div class="ref-addr">${g.addr}</div>
+      ${g.note ? `<div class="ref-addr">${g.note}</div>` : ''}
+    </div>`;
+  });
+  html += '</div>';
+
+  pane.innerHTML = html;
+}
+
+function initMap() {
+  if (mapInit) return;
+  mapInit = true;
+
+  const map = L.map('map', {zoomControl: true}).setView([44.5, -113.5], 4);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© CARTO', maxZoom: 18
+  }).addTo(map);
+
+  // Route
+  const routeCoords = DAYS.filter(d=>d.camp.name!=='Home'||d.day===1).map(d=>{
+    const camps = {
+      'Fairfax, CA':[37.987,-122.589],
+      'June Lake, CA':[37.778,-119.059],
+      'Doyle, CA':[40.02,-120.10],
+      'Butte Lake, Lassen NP':[40.578,-121.282],
+      'Mazama Campground, Crater Lake NP, OR':[42.868,-122.144],
+      'Terrebonne, OR':[44.365,-121.158],
+      'Cheney, WA':[47.490,-117.570],
+      'Big Arm, Flathead Lake MT':[47.798,-114.314],
+      'Fish Creek Camp, West Glacier':[48.502,-113.988],
+      'West Glacier, MT':[48.502,-113.988],
+      'Babb, MT (near Many Glacier)':[48.848,-113.432],
+      'St. Mary, MT':[48.744,-113.438],
+      'Canyon Campground, Yellowstone NP, WY':[44.729,-110.499],
+      'Madison Camp':[44.648,-110.862],
+      'Grant Village, Yellowstone NP, WY':[44.390,-110.540],
+      'Grand Teton NP, WY':[43.908,-110.633],
+      'Colter Bay, Grand Teton NP WY':[43.908,-110.633],
+      'Teton Village, WY':[43.587,-110.828],
+      'Jackson, WY':[43.479,-110.762],
+      'Gros Ventre Campground, Jackson WY':[43.503,-110.719],
+      'Gros Ventre Camp, Jackson':[43.503,-110.719],
+      'Mendoza Ranchette, Jerome ID':[42.724,-114.524],
+      'Jerome, ID':[42.724,-114.524],
+      'Painted Hills, Mitchell OR':[44.553,-120.152],
+      'Back Side of Painted Hills, Mitchell OR':[44.553,-120.152],
+      'Yachats, OR':[44.352,-124.091],
+      'Corvallis, OR':[44.565,-123.262],
+      'Dunsmuir, CA':[41.208,-122.272],
+      'Fairfax, CA — HOME':[37.987,-122.589],
+    };
+    for (const [k,v] of Object.entries(camps)) {
+      if (d.to.includes(k.split(',')[0]) || d.to === k) return v;
+    }
+    return null;
+  }).filter(Boolean);
+
+  if (routeCoords.length > 0) {
+    L.polyline(routeCoords, {color:'#f59e0b',weight:2,opacity:0.7,dashArray:'6,4'}).addTo(map);
+  }
+
+  // Camp pins
+  DAYS.forEach((d, i) => {
+    if (!d.camp || d.miles === '0') return;
+    let lat, lng;
+    const locMap = {
+      'June Lake, CA':[37.778,-119.059],
+      'Doyle, CA':[40.02,-120.10],
+      'Lassen Volcanic NP, CA':[40.578,-121.282],
+      'Crater Lake NP, OR':[42.868,-122.144],
+      'Terrebonne, OR':[44.365,-121.158],
+      'Cheney, WA':[47.490,-117.570],
+      'Big Arm, Flathead Lake, MT':[47.798,-114.314],
+      'West Glacier, MT':[48.502,-113.988],
+      'Babb, MT (near Many Glacier)':[48.848,-113.432],
+      'St. Mary, MT':[48.744,-113.438],
+      'Yellowstone NP, WY':[44.729,-110.499],
+      'Madison Campground':[44.648,-110.862],
+      'Grant Village, Yellowstone NP, WY':[44.390,-110.540],
+      'Grand Teton NP, WY':[43.908,-110.633],
+      'Teton Village, WY':[43.587,-110.828],
+      'Jackson, WY':[43.479,-110.762],
+      'Gros Ventre':[43.503,-110.719],
+      'Jerome, ID':[42.724,-114.524],
+      'Mitchell, OR':[44.553,-120.152],
+      'Yachats, OR':[44.352,-124.091],
+      'Corvallis, OR':[44.565,-123.262],
+      'Dunsmuir, CA':[41.208,-122.272],
+    };
+    for (const [k,v] of Object.entries(locMap)) {
+      if (d.camp.loc.includes(k.split(',')[0])) { [lat,lng] = v; break; }
+    }
+    if (!lat) return;
+
+    const icon = L.divIcon({
+      className:'',
+      html:`<div style="background:#f59e0b;color:#0f172a;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.5)">${d.day}</div>`,
+      iconSize:[22,22], iconAnchor:[11,11]
+    });
+    L.marker([lat,lng],{icon}).addTo(map).bindPopup(`<strong>${d.camp.name}</strong><br>${formatDate(d.date)}<br>${d.miles!=='0'?d.miles+' mi · '+d.time:'Stay day'}`);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showTab(tab, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pane-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'map') { setTimeout(initMap, 100); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+const todayIdx = getTodayIdx();
+currentDayIdx = todayIdx >= 0 ? todayIdx : 0;
+renderToday();
+renderAllDays();
+renderRef();
+</script>
+</body>
+</html>
