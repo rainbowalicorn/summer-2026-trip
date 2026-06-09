@@ -128,10 +128,16 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 
 /* ── HIKE CARDS ── */
 .hikes-grid { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
-.hike-card { background: linear-gradient(135deg, #1a0d3d, #150d2e); border: 1px solid #2e1065; border-radius: 11px; padding: 10px 13px; display: flex; gap: 10px; align-items: flex-start; }
+.hike-card { background: linear-gradient(135deg, #1a0d3d, #150d2e); border: 1px solid #2e1065; border-radius: 11px; padding: 10px 13px; display: flex; gap: 10px; align-items: flex-start; transition: opacity 0.2s; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hike-card.done { opacity: 0.5; background: linear-gradient(135deg,#0e1e10,#0a180c); border-color: #2a5c2a; }
+.hike-card-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #4a2a8a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; transition: all 0.2s; background: rgba(255,255,255,0.04); }
+.hike-card.done .hike-card-check { background: #2a7a3a; border-color: #3a9a4a; }
+.hike-card-check-icon { font-size: 0.8rem; opacity: 0; transition: opacity 0.15s; }
+.hike-card.done .hike-card-check-icon { opacity: 1; }
 .hike-card-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
 .hike-card-body { flex: 1; }
-.hike-card-name { font-size: 0.87rem; font-weight: 700; color: #c4b5fd; margin-bottom: 3px; }
+.hike-card-name { font-size: 0.87rem; font-weight: 700; color: #c4b5fd; margin-bottom: 3px; transition: text-decoration 0.2s; }
+.hike-card.done .hike-card-name { text-decoration: line-through; color: var(--muted); }
 .hike-card-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
 .hike-meta-badge { font-size: 0.63rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; background: rgba(255,255,255,0.07); color: var(--muted); border: 1px solid rgba(255,255,255,0.08); }
 .hike-card-note { font-size: 0.73rem; color: var(--muted); line-height: 1.5; }
@@ -1083,9 +1089,11 @@ function renderToday() {
   // Hikes
   if (d.hikes.length > 0) {
     html += `<div class="section-label">🥾 Hikes & Activities</div><div class="hikes-grid">`;
-    d.hikes.forEach(h => {
-      html += `<div class="hike-card">
-        <div class="hike-card-icon">🥾</div>
+    d.hikes.forEach((h, hi) => {
+      const hikeKey = `hike_${d.date}_${hi}`;
+      const done = localStorage.getItem(hikeKey) === '1';
+      html += `<div class="hike-card${done?' done':''}" onclick="toggleHike('${hikeKey}',this)">
+        <div class="hike-card-check"><span class="hike-card-check-icon">✓</span></div>
         <div class="hike-card-body">
           <div class="hike-card-name">${h.name}</div>
           <div class="hike-card-meta">
@@ -1314,6 +1322,20 @@ function showTab(tab, btn) {
   document.getElementById('pane-' + tab).classList.add('active');
   btn.classList.add('active');
   if (tab === 'map') { setTimeout(initMap, 100); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// HIKE COMPLETION
+// ═══════════════════════════════════════════════════════════
+function toggleHike(key, el) {
+  const done = localStorage.getItem(key) === '1';
+  if (done) {
+    localStorage.removeItem(key);
+    el.classList.remove('done');
+  } else {
+    localStorage.setItem(key, '1');
+    el.classList.add('done');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
