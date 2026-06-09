@@ -11,26 +11,26 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root {
-  --bg: #0a0f1e;
-  --card: #131c2e;
-  --card2: #1a2640;
-  --border: #1e3050;
-  --accent: #f59e0b;
-  --accent2: #fbbf24;
-  --text: #e8f0fe;
-  --muted: #7a90b0;
-  --green: #34d399;
-  --red: #f87171;
-  --blue: #60a5fa;
-  --purple: #a78bfa;
-  --orange: #fb923c;
-  --teal: #2dd4bf;
+  --bg: #0c1510;
+  --card: #162019;
+  --card2: #1e2d22;
+  --border: #2d4030;
+  --accent: #e8782a;
+  --accent2: #f5a823;
+  --text: #f0ede6;
+  --muted: #8a9e82;
+  --green: #52b87a;
+  --red: #e85c45;
+  --blue: #5b9ee0;
+  --purple: #a07bd6;
+  --orange: #e86a1a;
+  --teal: #3abcaa;
   --radius: 14px;
   --nav-h: 68px;
 }
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;700;800;900&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
 
 /* ── LAYOUT ── */
 #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
@@ -783,31 +783,46 @@ function formatDate(d) {
 
 // Location themes: [gradient, text color, emoji]
 const THEMES = {
-  'June Lake':      ['linear-gradient(135deg,#78350f,#92400e,#c2410c)','#fff','🏔️'],
-  'Doyle':          ['linear-gradient(135deg,#1c1917,#292524,#44403c)','#d6d3d1','🌵'],
-  'Lassen':         ['linear-gradient(135deg,#7f1d1d,#b45309,#78350f)','#fff','🌋'],
-  'Crater Lake':    ['linear-gradient(135deg,#1e3a8a,#1d4ed8,#312e81)','#bfdbfe','💧'],
-  'Terrebonne':     ['linear-gradient(135deg,#14532d,#166534,#15803d)','#bbf7d0','🪨'],
-  'Cheney':         ['linear-gradient(135deg,#1e3a5f,#1e40af,#374151)','#bfdbfe','🌾'],
-  'Big Arm':        ['linear-gradient(135deg,#0c4a6e,#0369a1,#164e63)','#bae6fd','🏞️'],
-  'Fish Creek':     ['linear-gradient(135deg,#0e7490,#0284c7,#164e63)','#bae6fd','🌲'],
-  'West Glacier':   ['linear-gradient(135deg,#0e7490,#0284c7,#164e63)','#bae6fd','🌲'],
-  'Babb':           ['linear-gradient(135deg,#0e7490,#155e75,#0c4a6e)','#a5f3fc','⛰️'],
-  'St. Mary':       ['linear-gradient(135deg,#0e7490,#0891b2,#0c4a6e)','#a5f3fc','🏔️'],
-  'Canyon':         ['linear-gradient(135deg,#78350f,#d97706,#b45309)','#fef3c7','♨️'],
-  'Madison':        ['linear-gradient(135deg,#78350f,#d97706,#92400e)','#fde68a','🌋'],
-  'Grant Village':  ['linear-gradient(135deg,#78350f,#d97706,#15803d)','#fde68a','🌊'],
-  'Colter Bay':     ['linear-gradient(135deg,#1e293b,#374151,#4b5563)','#e2e8f0','⛰️'],
-  'Teton Village':  ['linear-gradient(135deg,#1e293b,#374151,#1e3a5f)','#e2e8f0','🚡'],
-  'Jackson Hole':   ['linear-gradient(135deg,#3b1f0f,#78350f,#92400e)','#fed7aa','🎆'],
-  'Jackson':        ['linear-gradient(135deg,#3b1f0f,#78350f,#15803d)','#fed7aa','🫎'],
-  'Gros Ventre':    ['linear-gradient(135deg,#14532d,#166534,#3b1f0f)','#bbf7d0','♨️'],
-  'Jerome':         ['linear-gradient(135deg,#1e3a5f,#1e40af,#78350f)','#bfdbfe','🌉'],
-  'Mitchell':       ['linear-gradient(135deg,#7f1d1d,#b45309,#78350f)','#fde68a','🎨'],
-  'Yachats':        ['linear-gradient(135deg,#0e4f5e,#0891b2,#0e7490)','#a5f3fc','🦭'],
-  'Corvallis':      ['linear-gradient(135deg,#14532d,#166534,#065f46)','#bbf7d0','🌲'],
-  'Dunsmuir':       ['linear-gradient(135deg,#14532d,#166534,#1e293b)','#bbf7d0','💧'],
-  'Home':           ['linear-gradient(135deg,#1e3a5f,#1e40af,#14532d)','#bfdbfe','🏠'],
+  // Eastern Sierra — warm amber canyon light, desert gold
+  'Eastern Sierra/June Lake': ['linear-gradient(135deg,#3d1f08 0%,#7a3a10 40%,#c4621a 80%,#e8782a 100%)','#fde8cc','🏔️'],
+  'June Lake': ['linear-gradient(135deg,#3d1f08 0%,#7a3a10 40%,#c4621a 80%,#e8782a 100%)','#fde8cc','🏔️'],
+  // Lassen — deep volcanic ember red-orange
+  'Lassen': ['linear-gradient(135deg,#4a0e0e 0%,#7a1a0a 40%,#c43a12 75%,#e85a1a 100%)','#ffd5bc','🌋'],
+  // Crater Lake — deep sapphire blue inspired by image 3's teal water
+  'Crater Lake': ['linear-gradient(135deg,#0a1a2e 0%,#0d3a5c 40%,#1a6a8a 75%,#2a9ab8 100%)','#b8e8f5','💧'],
+  // Oregon/Terrebonne — forest green like image 1
+  'Terrebonne': ['linear-gradient(135deg,#0d2214 0%,#1a4a22 40%,#2d7a3a 75%,#3aaa52 100%)','#c5f0c8','🌿'],
+  // Washington — twilight blue-green
+  'Cheney': ['linear-gradient(135deg,#0e1e2e 0%,#1a3450 40%,#2a5a7a 75%,#3a8aa8 100%)','#b8d8f0','🌾'],
+  // Flathead Lake — rich teal like image 4
+  'Big Arm': ['linear-gradient(135deg,#082a2a 0%,#0e4a48 40%,#1a7a72 75%,#2aaa9a 100%)','#b0ede8','🏞️'],
+  // Glacier West — forest teal, like image 1 night scene
+  'Fish Creek': ['linear-gradient(135deg,#082018 0%,#0e3a28 40%,#1a6a4a 75%,#2aaa7a 100%)','#aaeed8','🌲'],
+  'West Glacier': ['linear-gradient(135deg,#082018 0%,#0e3a28 40%,#1a6a4a 75%,#2aaa7a 100%)','#aaeed8','🌲'],
+  // Many Glacier/Babb — ice-teal, alpine lake (image 3)
+  'Babb': ['linear-gradient(135deg,#0a1e2a 0%,#0e3a52 40%,#1a6a82 75%,#2a9ab5 100%)','#a8e5f5','⛰️'],
+  'St. Mary': ['linear-gradient(135deg,#0a1e2a 0%,#0e3a52 40%,#1a6a82 75%,#2a9ab5 100%)','#a8e5f5','🏔️'],
+  // Yellowstone — thermal amber, sulfur gold (image 2 warmth)
+  'Canyon': ['linear-gradient(135deg,#2a1206 0%,#5a2a08 40%,#aa5a12 75%,#d8841a 100%)','#fde5a8','♨️'],
+  'Madison': ['linear-gradient(135deg,#2a1206 0%,#5a2a08 40%,#aa5a12 75%,#e8982a 100%)','#fde5a8','🌋'],
+  'Grant Village': ['linear-gradient(135deg,#2a1206 0%,#5a2a08 40%,#9a5010 75%,#c8781a 100%)','#fde5a8','🌊'],
+  // Grand Teton — granite grey-blue with alpenglow orange (image 3)
+  'Colter Bay': ['linear-gradient(135deg,#18201e 0%,#2a3830 40%,#3a5848 75%,#4a7860 100%)','#d5ede6','⛰️'],
+  'Teton Village': ['linear-gradient(135deg,#1a1818 0%,#2a2830 40%,#3a4060 75%,#4a5882 100%)','#d5d8ee','🚡'],
+  'Jackson Hole': ['linear-gradient(135deg,#2a1208 0%,#5a2818 40%,#8a4a22 75%,#c87a3a 100%)','#fde2c0','🎆'],
+  'Jackson': ['linear-gradient(135deg,#1a2010 0%,#2a3818 40%,#4a6228 75%,#72a03a 100%)','#d8eec0','🫎'],
+  'Gros Ventre': ['linear-gradient(135deg,#102018 0%,#1a3828 40%,#2a5c40 75%,#3a8a5a 100%)','#c2e8d2','♨️'],
+  // Idaho — high desert blue with volcanic hints
+  'Jerome': ['linear-gradient(135deg,#12181e 0%,#203040 40%,#3a5870 75%,#5288a8 100%)','#c0d8ec','🌉'],
+  // Painted Hills — terracotta, ochre, rust (image 2 warm palette)
+  'Mitchell': ['linear-gradient(135deg,#2a1008 0%,#5a2810 40%,#8a4a1a 75%,#c87a28 100%)','#fad8a8','🎨'],
+  // Oregon Coast — deep ocean teal (image 3/4 water)
+  'Yachats': ['linear-gradient(135deg,#081e22 0%,#0e3a42 40%,#1a6878 75%,#2a9aaa 100%)','#a8e5f0','🦭'],
+  // Corvallis — forest green
+  'Corvallis': ['linear-gradient(135deg,#0c1e0c 0%,#163018 40%,#2a5228 75%,#3e7a3a 100%)','#c8eac8','🌲'],
+  // Northern CA return — deep forest and river
+  'Dunsmuir': ['linear-gradient(135deg,#0e1e12 0%,#183222 40%,#2a5a38 75%,#3c8252 100%)','#c0e8cc','💧'],
+  'Home': ['linear-gradient(135deg,#1a1e0e 0%,#2a3018 40%,#3a4828 75%,#4a682e 100%)','#d0e8b8','🏠'],
 };
 
 function getTheme(d) {
@@ -1122,7 +1137,7 @@ function renderAllDays() {
         ${d.lunch ? `<div class="detail-section"><h4>🥪 Lunch</h4><div class="detail-row"><span class="icon">🥪</span><div class="txt">${d.lunch.name}<div class="sub">${d.lunch.loc}</div></div></div></div>` : ''}
         ${d.hotspring ? `<div class="detail-section"><h4>♨️ Hot Spring</h4><div class="detail-row"><span class="icon">♨️</span><div class="txt">${d.hotspring.name}<div class="sub">${d.hotspring.note.substring(0,100)}</div></div></div></div>` : ''}
         ${d.hikes.length > 0 ? `<div class="detail-section"><h4>🥾 Hikes</h4>${d.hikes.map(h=>`<div class="detail-row"><span class="icon">🥾</span><div class="txt"><strong>${h.name}</strong>${h.dist&&h.dist!=='—'?' · '+h.dist:''}<div class="sub">${h.note.substring(0,100)}</div></div></div>`).join('')}</div>` : ''}
-        <div style="margin-top:10px;background:#0a2d14;border:1px solid #166534;border-radius:10px;padding:10px 12px;">
+        <div style="margin-top:10px;background:linear-gradient(135deg,#0c2018,#162c20);border:1px solid #2a5c38;border-radius:10px;padding:10px 12px;">
           <div style="font-size:0.78rem;font-weight:800;color:#86efac;">${d.camp.type==='NPS'?'🏕️':d.camp.type==='HipCamp'?'🦙':d.camp.type==='Hotel'||d.camp.type==='Hotel/Lodge'?'🏨':'⛺'} ${d.camp.name}</div>
           <div style="font-size:0.7rem;color:#4ade80;margin-top:3px;">${d.camp.loc}${d.camp.site&&d.camp.site!=='—'?' · Site '+d.camp.site:''}${d.camp.conf&&d.camp.conf!=='—'&&d.camp.conf!=='N/A'?' · <span style="color:var(--accent);">#'+d.camp.conf+'</span>':''}</div>
         </div>
