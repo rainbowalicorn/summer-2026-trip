@@ -1050,10 +1050,21 @@ function renderToday() {
 
   // Camp card
   if (d.camp.name !== 'Home') {
+    // Check if tomorrow is a new camp (last night here)
+    const nextDay = DAYS[dispIdx + 1];
+    const isLastNight = nextDay && nextDay.camp && nextDay.camp.name !== d.camp.name && d.camp.checkout && d.camp.checkout !== '—';
+    const campIcon = d.camp.type === 'NPS' ? '🏕️' : d.camp.type === 'HipCamp' ? '🦙' : d.camp.type === 'Hotel' || d.camp.type === 'Hotel/Lodge' ? '🏨' : d.camp.type === 'Family' ? '🏡' : d.camp.type === 'Harvest Host' ? '🌾' : '⛺';
     html += `<div class="section-label">Tonight's Stay</div>
+    ${isLastNight ? `<div style="background:linear-gradient(135deg,#2a1e08,#3a2a10);border:1px solid #7a5a1a;border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:1.2rem">⏰</span>
+      <div>
+        <div style="font-size:0.78rem;font-weight:800;color:#f5c842;">Last Night Here</div>
+        <div style="font-size:0.74rem;color:#fde8a0;margin-top:2px;">Checkout tomorrow by <strong>${d.camp.checkout}</strong> · Next stop: ${nextDay.camp.name.split(' ')[0]} ${nextDay.camp.name.split(' ')[1] || ''}</div>
+      </div>
+    </div>` : ''}
     <div class="camp-card">
       <div class="camp-card-header">
-        <div class="camp-card-icon">${d.camp.type === 'NPS' ? '🏕️' : d.camp.type === 'HipCamp' ? '🦙' : d.camp.type === 'Hotel' || d.camp.type === 'Hotel/Lodge' ? '🏨' : d.camp.type === 'Family' ? '🏡' : d.camp.type === 'Harvest Host' ? '🌾' : '⛺'}</div>
+        <div class="camp-card-icon">${campIcon}</div>
         <div>
           <div class="camp-card-title">${d.camp.name}</div>
           <div class="camp-card-sub">${d.camp.loc}</div>
@@ -1062,6 +1073,7 @@ function renderToday() {
       <div class="camp-rows">
         ${d.camp.site && d.camp.site !== '—' ? `<div class="camp-row"><span class="camp-label">Site</span><span class="camp-value">${d.camp.site}</span></div>` : ''}
         ${d.camp.checkin && d.camp.checkin !== '—' ? `<div class="camp-row"><span class="camp-label">Check-in</span><span class="camp-value">${d.camp.checkin}</span></div>` : ''}
+        ${d.camp.checkout && d.camp.checkout !== '—' ? `<div class="camp-row"><span class="camp-label">Check-out</span><span class="camp-value">${d.camp.checkout}</span></div>` : ''}
         ${d.camp.conf && d.camp.conf !== '—' && d.camp.conf !== 'N/A' ? `<div class="camp-row"><span class="camp-label">Confirmation</span><span class="camp-value conf-num">${d.camp.conf}</span></div>` : ''}
         <div class="camp-row"><span class="camp-label">Type</span><span class="camp-value">${d.camp.type}</span></div>
       </div>
