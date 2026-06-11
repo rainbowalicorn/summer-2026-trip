@@ -248,8 +248,9 @@ body {
 // TRIP DATA
 // ═══════════════════════════════════════════════════════════
 
-const TRIP_START = new Date('2026-06-14');
-const TRIP_END   = new Date('2026-07-12');
+function parseLocalDate(s) { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+const TRIP_START = parseLocalDate('2026-06-14');
+const TRIP_END   = parseLocalDate('2026-07-12');
 
 const DAYS = [
   {
@@ -788,12 +789,12 @@ function getTodayIdx() {
   if (today < start) return -1;
   if (today > end) return -2;
   for (let i = 0; i < DAYS.length; i++) {
-    const d = new Date(DAYS[i].date); d.setHours(0,0,0,0);
+    const d = parseLocalDate(DAYS[i].date); d.setHours(0,0,0,0);
     if (d.getTime() === today.getTime()) return i;
   }
   // find nearest
   for (let i = 0; i < DAYS.length - 1; i++) {
-    const a = new Date(DAYS[i].date), b = new Date(DAYS[i+1].date);
+    const a = parseLocalDate(DAYS[i].date), b = parseLocalDate(DAYS[i+1].date);
     if (today >= a && today < b) return i;
   }
   return DAYS.length - 1;
@@ -806,7 +807,7 @@ function daysUntilTrip() {
 }
 
 function formatDate(d) {
-  return new Date(d).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+  return parseLocalDate(d).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
 }
 
 // Location themes: [gradient, text color, emoji]
